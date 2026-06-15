@@ -16,7 +16,10 @@ from app.db.enums import (
     UserRole,
 )
 from app.modules.admin import repository as repo
+from app.modules.admin.audit import record_audit
 from app.modules.admin.schemas import (
+    AdminAuditListOut,
+    AdminAuditOut,
     AdminGroupListOut,
     AdminGroupOut,
     AdminPaymentListOut,
@@ -156,16 +159,35 @@ async def update_user(
     # Блокировка вступает в силу сразу: отзываем все refresh пользователя.
     if data.is_active is False:
         await revoke_all_refresh(redis_client, user.id)
+    await record_audit(
+        db, actor, "user_update", target=f"user#{user_id}",
+        meta={"is_active": data.is_active, "role": data.role},
+    )
     return await get_user(db, user_id)
 
 
-async def reset_password(db: AsyncSession, user_id: int, new_password: str) -> None:
+async def reset_password(db: AsyncSession, actor: User, user_id: int, new_password: str) -> None:
     user = await db.get(User, user_id)
     if user is None:
         raise NotFoundError("Пользователь не найден", code="user_not_found")
     user.password_hash = hash_password(new_password)
     await db.commit()
     await revoke_all_refresh(redis_client, user.id)
+    await record_audit(db, actor, "password_reset", target=f"user#{user_id}")
+
+
+async def list_audit(db: AsyncSession, *, page: int, size: int) -> AdminAuditListOut:
+    rows, total = await repo.list_audit(db, page=page, size=size)
+    return AdminAuditListOut(
+        items=[
+            AdminAuditOut(
+                id=a.id, actor_email=a.actor_email, action=a.action,
+                target=a.target, created_at=a.created_at,
+            )
+            for a in rows
+        ],
+        total=total, page=page, size=size,
+    )
 
 
 # ── Реестры ──────────────────────────────────────────────────────────────────

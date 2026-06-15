@@ -13,6 +13,7 @@ from app.api.deps import get_db
 from app.db.enums import PaymentStatus, UserRole
 from app.modules.admin import service
 from app.modules.admin.schemas import (
+    AdminAuditListOut,
     AdminGroupListOut,
     AdminPaymentListOut,
     AdminUserListOut,
@@ -57,8 +58,8 @@ async def update_user(user_id: int, data: UpdateUserIn, admin: CurrentUser, db: 
 
 
 @router.post("/users/{user_id}/reset-password", status_code=status.HTTP_204_NO_CONTENT)
-async def reset_password(user_id: int, data: ResetPasswordIn, db: DbDep):
-    await service.reset_password(db, user_id, data.new_password)
+async def reset_password(user_id: int, data: ResetPasswordIn, admin: CurrentUser, db: DbDep):
+    await service.reset_password(db, admin, user_id, data.new_password)
 
 
 # ── Реестры ──────────────────────────────────────────────────────────────────
@@ -79,6 +80,16 @@ async def list_groups(
     size: int = Query(20, ge=1, le=100),
 ):
     return await service.list_groups(db, page=page, size=size)
+
+
+# ── Журнал аудита ────────────────────────────────────────────────────────────
+@router.get("/audit", response_model=AdminAuditListOut)
+async def audit_log(
+    db: DbDep,
+    page: int = Query(1, ge=1),
+    size: int = Query(50, ge=1, le=200),
+):
+    return await service.list_audit(db, page=page, size=size)
 
 
 # ── Справочники ──────────────────────────────────────────────────────────────

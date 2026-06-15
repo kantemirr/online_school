@@ -110,7 +110,7 @@ async def delete_child(db: AsyncSession, parent: User, child_id: int) -> None:
 
 
 # ── Создание персонала администратором ───────────────────────────────────────
-async def create_staff(db: AsyncSession, data: CreateStaffIn) -> User:
+async def create_staff(db: AsyncSession, actor: User, data: CreateStaffIn) -> User:
     exists = await db.scalar(select(User).where(User.email == data.email))
     if exists is not None:
         raise ConflictError("Пользователь с таким email уже существует", code="email_taken")
@@ -128,4 +128,7 @@ async def create_staff(db: AsyncSession, data: CreateStaffIn) -> User:
     db.add(user)
     await db.commit()
     await db.refresh(user)
+
+    from app.modules.admin.audit import record_audit
+    await record_audit(db, actor, "staff_create", target=f"user#{user.id}", meta={"role": data.role.value})
     return user

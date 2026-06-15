@@ -137,9 +137,22 @@ async def test_admin_registries_and_reference(client, redis):
     assert "payment_statuses" in ref["sections"]
 
 
+async def test_admin_audit_records_actions(client, redis):
+    admin = await _admin_auth(client)
+    # Действие админа (создание персонала) → запись в журнале аудита
+    temail = f"aud_{uuid4().hex[:8]}@codekids.ru"
+    await client.post("/admin/users", headers=admin, json={
+        "email": temail, "password": "teacherpass1", "role": "teacher", "full_name": "Аудит",
+    })
+    audit = (await client.get("/admin/audit", headers=admin)).json()
+    assert audit["total"] >= 1
+    assert any(a["action"] == "staff_create" and a["actor_email"] == "admin@codekids.ru" for a in audit["items"])
+
+
 async def test_admin_rbac(client, redis):
     # Родитель не имеет доступа к админ-поверхности
     parent, _, _ = await _register_parent(client, redis)
     assert (await client.get("/admin/users", headers=parent)).status_code == 403
     assert (await client.get("/admin/payments", headers=parent)).status_code == 403
     assert (await client.get("/admin/reference", headers=parent)).status_code == 403
+    assert (await client.get("/admin/audit", headers=parent)).status_code == 403

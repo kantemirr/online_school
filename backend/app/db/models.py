@@ -50,4 +50,7 @@ from app.modules.payments.models import Payment, Subscription  # noqa: F401,E402
 # notifications
 from app.modules.notifications.models import Notification  # noqa: F401,E402
 
+# admin (журнал аудита)
+from app.modules.admin.models import AuditLog  # noqa: F401,E402
+
 __all__ = ["Base"]

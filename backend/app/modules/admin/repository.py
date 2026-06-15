@@ -7,6 +7,7 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.enums import PaymentStatus, UserRole
+from app.modules.admin.models import AuditLog
 from app.modules.catalog.models import Course
 from app.modules.payments.models import Payment, Subscription
 from app.modules.scheduling.models import Group, GroupMember, ScheduleSession
@@ -133,3 +134,11 @@ async def list_groups(
         base.order_by(Group.id).offset((page - 1) * size).limit(size)
     )
     return rows.all(), total
+
+
+async def list_audit(db: AsyncSession, *, page: int = 1, size: int = 50) -> tuple[list[AuditLog], int]:
+    total = await db.scalar(select(func.count()).select_from(AuditLog)) or 0
+    rows = await db.scalars(
+        select(AuditLog).order_by(AuditLog.id.desc()).offset((page - 1) * size).limit(size)
+    )
+    return list(rows), total

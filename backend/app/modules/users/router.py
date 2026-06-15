@@ -73,6 +73,6 @@ AdminDep = Annotated[User, Depends(require_roles(UserRole.ADMIN))]
 
 
 @router.post("/admin/users", response_model=MeOut, status_code=status.HTTP_201_CREATED)
-async def create_staff(data: CreateStaffIn, _admin: AdminDep, db: DbDep):
-    user = await service.create_staff(db, data)
+async def create_staff(data: CreateStaffIn, admin: AdminDep, db: DbDep):
+    user = await service.create_staff(db, admin, data)
     return await service.build_me(db, user)

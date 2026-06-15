@@ -1,10 +1,26 @@
-"""Pydantic-схемы админ-панели: пользователи, реестры, справочники."""
+"""Pydantic-схемы админ-панели: пользователи, реестры, справочники, аудит."""
 from datetime import datetime
 from decimal import Decimal
 
 from pydantic import BaseModel, Field
 
 from app.db.enums import PaymentStatus, SubscriptionPlan, UserRole
+
+
+# ── Журнал аудита ────────────────────────────────────────────────────────────
+class AdminAuditOut(BaseModel):
+    id: int
+    actor_email: str | None
+    action: str
+    target: str | None
+    created_at: datetime
+
+
+class AdminAuditListOut(BaseModel):
+    items: list[AdminAuditOut]
+    total: int
+    page: int
+    size: int
 
 
 # ── Управление пользователями ────────────────────────────────────────────────
