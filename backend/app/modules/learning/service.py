@@ -120,6 +120,23 @@ async def _resolve_course_id(db: AsyncSession, lesson: Lesson) -> int:
     return module.course_id
 
 
+async def ensure_lesson_unlocked(db: AsyncSession, student_id: int, lesson_id: int) -> Enrollment:
+    """Проверяет, что ученик записан и урок разблокирован. Возвращает enrollment.
+
+    Переиспользуется грейдингом (Этап 5): доступ к заданию урока.
+    """
+    lesson = await db.get(Lesson, lesson_id)
+    if lesson is None:
+        raise NotFoundError("Урок не найден", code="lesson_not_found")
+    course_id = await _resolve_course_id(db, lesson)
+    enrollment, course, rows = await _load_context(db, student_id, course_id)
+    completed = _completed_ids(rows)
+    ordered_ids = [lsn.id for lsn in _ordered_lessons(course)]
+    if lesson_id not in logic.unlocked_lessons(ordered_ids, completed):
+        raise PermissionDeniedError("Урок ещё заблокирован", code="lesson_locked")
+    return enrollment
+
+
 async def get_lesson_content(
     db: AsyncSession, student_id: int, lesson_id: int
 ) -> LessonContentOut:
