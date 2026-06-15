@@ -65,4 +65,10 @@ async def run_code_check(submission_id: int) -> None:
             if enrollment is not None:
                 await learning.mark_lesson_completed(db, enrollment, assignment.lesson_id, agg["score"])
 
+        # Уведомление ученику (+ email родителю)
+        from app.modules.notifications import service as notifications
+        await notifications.notify_work_checked(
+            db, submission.student_id, submission.id, agg["verdict"].value
+        )
+
         logger.info("code_check done: submission=%s verdict=%s", submission_id, agg["verdict"])

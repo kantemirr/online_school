@@ -122,6 +122,12 @@ async def create_session(db: AsyncSession, user: User, group_id: int, data: Sess
     db.add(session)
     await db.commit()
     await db.refresh(session)
+
+    # Уведомления членам группы о новом занятии (+ email родителям)
+    from app.modules.notifications import service as notifications
+    for member in await repo.group_members(db, group_id):
+        await notifications.notify_new_session(db, member.student_id, session)
+
     return _session_out(session)
 
 

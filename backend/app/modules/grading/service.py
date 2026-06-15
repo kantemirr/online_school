@@ -211,4 +211,10 @@ async def review_project(db: AsyncSession, teacher: User, submission_id: int, da
         if enrollment is not None:
             await learning.mark_lesson_completed(db, enrollment, assignment.lesson_id, data.score)
 
+    # Уведомление ученику (+ email родителю)
+    from app.modules.notifications import service as notifications
+    await notifications.notify_work_checked(
+        db, submission.student_id, submission.id, submission.status.value
+    )
+
     return _submission_out(submission)

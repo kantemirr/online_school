@@ -50,14 +50,18 @@ async def evaluate_achievements(db: AsyncSession, student_id: int) -> int:
     """Выдаёт недостающие достижения по текущей статистике. Возвращает число новых."""
     stats = await repo.compute_student_stats(db, student_id)
     earned = await repo.earned_ids(db, student_id)
-    granted = 0
+    granted: list[tuple[str, str]] = []
     for achievement in await repo.list_achievements(db):
         if achievement.id not in earned and logic.is_earned(achievement.condition_json or {}, stats):
             db.add(StudentAchievement(student_id=student_id, achievement_id=achievement.id))
-            granted += 1
+            granted.append((achievement.code, achievement.title))
     if granted:
         await db.commit()
-    return granted
+        # Уведомление ученику (+ email родителю) по каждому новому достижению
+        from app.modules.notifications import service as notifications
+        for code, title in granted:
+            await notifications.notify_achievement(db, student_id, code, title)
+    return len(granted)
 
 
 # ── Чтение для API ───────────────────────────────────────────────────────────
