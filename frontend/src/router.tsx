@@ -23,6 +23,10 @@ import { LeaderboardPage } from './pages/student/LeaderboardPage'
 import { LessonPage } from './pages/student/LessonPage'
 import { NotificationsPage } from './pages/student/NotificationsPage'
 import { SchedulePage } from './pages/student/SchedulePage'
+import { ChildReportPage } from './pages/parent/ChildReportPage'
+import { ChildrenPage } from './pages/parent/ChildrenPage'
+import { ParentDashboardPage } from './pages/parent/ParentDashboardPage'
+import { PaymentsPage } from './pages/parent/PaymentsPage'
 
 const guard = (roles: UserRole[], el: ReactNode) => <RequireAuth roles={roles}>{el}</RequireAuth>
 const student = (el: ReactNode) => guard(['student'], el)
@@ -51,10 +55,11 @@ export const router = createBrowserRouter([
       { path: '/achievements', element: student(<AchievementsPage />) },
       { path: '/leaderboard', element: student(<LeaderboardPage />) },
       { path: '/schedule', element: student(<SchedulePage />) },
-      { path: '/notifications', element: student(<NotificationsPage />) },
-      { path: '/parent', element: guard(['parent'], <ComingSoonPage title="Кабинет родителя" />) },
-      { path: '/parent/children', element: guard(['parent'], <ComingSoonPage title="Мои дети" />) },
-      { path: '/parent/payments', element: guard(['parent'], <ComingSoonPage title="Оплата" />) },
+      { path: '/notifications', element: <NotificationsPage /> },
+      { path: '/parent', element: guard(['parent'], <ParentDashboardPage />) },
+      { path: '/parent/children', element: guard(['parent'], <ChildrenPage />) },
+      { path: '/parent/children/:id', element: guard(['parent'], <ChildReportPage />) },
+      { path: '/parent/payments', element: guard(['parent'], <PaymentsPage />) },
       { path: '/teacher', element: guard(['teacher'], <ComingSoonPage title="Мои группы" />) },
       { path: '/teacher/queue', element: guard(['teacher'], <ComingSoonPage title="Очередь проверки" />) },
       { path: '/admin', element: guard(['admin'], <ComingSoonPage title="Админ-панель" />) },
