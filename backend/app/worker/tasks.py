@@ -1,12 +1,13 @@
 """Фоновые задачи ARQ.
 
-На Этапе 0 — только ping для проверки очереди. Дальше сюда добавятся:
-  code_check          — проверка кода ученика в песочнице (Этап 5b)
-  send_email          — отправка писем-уведомлений (Этап 8)
-  generate_report     — формирование отчётов об успеваемости (Этап 10)
-  evaluate_achievements — проверка условий достижений (Этап 6)
-  recalc_leaderboard  — пересчёт рейтингов (Этап 6)
+Реализовано:
+  ping        — проверка очереди (Этап 0)
+  send_email  — отправка письма-уведомления через SMTP (Этап 2/8)
+
+Дальше сюда добавятся:
+  code_check, generate_report, evaluate_achievements, recalc_leaderboard.
 """
+from app.core.email import send_email_smtp
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -18,5 +19,10 @@ async def ping(ctx: dict) -> str:
     return "pong"
 
 
+async def send_email(ctx: dict, to: str, subject: str, html: str) -> None:
+    """Отправляет письмо. Вызывается из API через enqueue_job('send_email', ...)."""
+    await send_email_smtp(to=to, subject=subject, html=html)
+
+
 # Список задач, который видит ARQ WorkerSettings.
-FUNCTIONS = [ping]
+FUNCTIONS = [ping, send_email]
