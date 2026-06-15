@@ -10,6 +10,7 @@ from app.api.v1.routes import health
 from app.modules.auth.router import router as auth_router
 from app.modules.catalog.admin_router import router as catalog_admin_router
 from app.modules.catalog.router import router as catalog_router
+from app.modules.gamification.router import router as gamification_router
 from app.modules.grading.router import router as grading_router
 from app.modules.learning.router import router as learning_router
 from app.modules.users.router import router as users_router
@@ -22,3 +23,4 @@ api_router.include_router(catalog_router)
 api_router.include_router(catalog_admin_router)
 api_router.include_router(learning_router)
 api_router.include_router(grading_router)
+api_router.include_router(gamification_router)

@@ -31,5 +31,23 @@ async def code_check(ctx: dict, submission_id: int) -> None:
     await run_code_check(submission_id)
 
 
+async def evaluate_achievements(ctx: dict, student_id: int) -> int:
+    """Фоновая проверка и выдача достижений ученику."""
+    from app.db.session import SessionLocal
+    from app.modules.gamification import service as gamification
+
+    async with SessionLocal() as db:
+        return await gamification.evaluate_achievements(db, student_id)
+
+
+async def recalc_leaderboard(ctx: dict) -> None:
+    """Фоновый пересчёт лидербордов из БД."""
+    from app.db.session import SessionLocal
+    from app.modules.gamification import service as gamification
+
+    async with SessionLocal() as db:
+        await gamification.recalc_leaderboards(db)
+
+
 # Список задач, который видит ARQ WorkerSettings.
-FUNCTIONS = [ping, send_email, code_check]
+FUNCTIONS = [ping, send_email, code_check, evaluate_achievements, recalc_leaderboard]
