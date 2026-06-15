@@ -7,6 +7,7 @@ payments, notifications, analytics, admin.
 from fastapi import APIRouter
 
 from app.api.v1.routes import health
+from app.modules.admin.router import router as admin_router
 from app.modules.analytics.router import router as analytics_router
 from app.modules.auth.router import router as auth_router
 from app.modules.catalog.admin_router import router as catalog_admin_router
@@ -32,3 +33,4 @@ api_router.include_router(scheduling_router)
 api_router.include_router(notifications_router)
 api_router.include_router(payments_router)
 api_router.include_router(analytics_router)
+api_router.include_router(admin_router)
