@@ -1,0 +1,48 @@
+%% Компонентная архитектура CodeKids (модульный монолит + фоновый воркер + песочница).
+flowchart TB
+    subgraph Client["Клиент"]
+        Browser["Браузер ребёнка/родителя/<br/>преподавателя/админа"]
+    end
+
+    subgraph Edge["Reverse-proxy"]
+        Nginx["nginx<br/>(статика SPA + проксирование /api)"]
+    end
+
+    subgraph Front["Frontend"]
+        SPA["React 18 + TS + Vite<br/>Redux Toolkit / RTK Query<br/>Tailwind + Framer Motion"]
+    end
+
+    subgraph Back["Backend — FastAPI (модульный монолит)"]
+        API["API /api/v1<br/>routers → services → repositories"]
+        Mods["Модули: auth · users · catalog · learning ·<br/>grading · gamification · scheduling ·<br/>payments · notifications · analytics · admin"]
+    end
+
+    subgraph Worker["Фоновый воркер — ARQ"]
+        Tasks["Задачи: code_check · send_email ·<br/>evaluate_achievements · recalc_leaderboard ·<br/>expire_subscriptions · generate_report"]
+    end
+
+    subgraph Sandbox["Изолированная песочница"]
+        Runner["Docker-контейнер на каждый прогон<br/>--network none, лимиты CPU/RAM/PIDs,<br/>ro-FS+tmpfs, cap-drop ALL, непривилегированно"]
+    end
+
+    subgraph Data["Хранилища"]
+        PG[("PostgreSQL<br/>основные данные")]
+        Redis[("Redis<br/>кэш · JWT-jti · rate-limit ·<br/>лидерборды · брокер ARQ")]
+    end
+
+    SMTP["SMTP / MailHog<br/>(письма)"]
+    Claude["Anthropic API<br/>(ИИ-подсказки, фолбэк-эвристика)"]
+
+    Browser --> Nginx
+    Nginx --> SPA
+    Nginx --> API
+    API --> Mods
+    Mods --> PG
+    Mods --> Redis
+    Mods -- "ставит задачи" --> Redis
+    Redis -- "очередь" --> Tasks
+    Tasks --> PG
+    Tasks --> Redis
+    Tasks -- "запуск кода ученика" --> Runner
+    Tasks --> SMTP
+    Tasks --> Claude

@@ -1,0 +1,38 @@
+%% Схема развёртывания: локально (docker-compose) и в облаке (Vercel + Render).
+flowchart TB
+    subgraph Local["Локальное развёртывание — docker-compose"]
+        direction TB
+        L_nginx["nginx :8080"]
+        L_front["frontend (Vite)"]
+        L_back["backend (FastAPI)"]
+        L_worker["worker (ARQ)"]
+        L_box["sandbox (Docker-out-of-Docker)"]
+        L_pg[("postgres")]
+        L_redis[("redis")]
+        L_mail["mailhog :8025"]
+        L_nginx --> L_front
+        L_nginx --> L_back
+        L_back --> L_pg
+        L_back --> L_redis
+        L_worker --> L_redis
+        L_worker --> L_pg
+        L_worker --> L_box
+        L_worker --> L_mail
+    end
+
+    subgraph Cloud["Облачное развёртывание"]
+        direction TB
+        C_vercel["Vercel<br/>SPA + rewrite /api/* → Render"]
+        C_web["Render: web (FastAPI)"]
+        C_worker["Render: worker (ARQ)"]
+        C_pg[("Vercel Postgres / Neon")]
+        C_kv[("Vercel KV / Upstash Redis")]
+        C_vercel -->|"/api/*"| C_web
+        C_web --> C_pg
+        C_web --> C_kv
+        C_worker --> C_kv
+        C_worker --> C_pg
+    end
+
+    Note1["В облаке песочница недоступна<br/>(нет Docker-сокета) → корректная деградация.<br/>Полная изоляция демонстрируется локально."]
+    Cloud -.-> Note1

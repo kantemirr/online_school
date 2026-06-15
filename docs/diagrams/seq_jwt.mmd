@@ -1,0 +1,29 @@
+%% Sequence: JWT-аутентификация (access/refresh с белым списком jti в Redis).
+sequenceDiagram
+    autonumber
+    actor U as Пользователь
+    participant API as FastAPI (auth)
+    participant DB as PostgreSQL
+    participant R as Redis (jti / rate-limit)
+
+    U->>API: POST /auth/login {email, password}
+    API->>R: rate-limit INCR (5/60с)
+    API->>DB: проверка argon2-хэша, is_active
+    API->>R: SET auth:refresh:{uid}:{jti} (TTL 7д)
+    API-->>U: {access (15м), refresh (7д)}
+
+    Note over U,API: доступ к защищённому ресурсу
+    U->>API: GET /... (Authorization: Bearer access)
+    API->>API: декод access (stateless) + RBAC + проверка владения
+    API-->>U: 200 / 401 / 403
+
+    Note over U,API: ротация по истечении access
+    U->>API: POST /auth/refresh {refresh}
+    API->>R: проверить jti в белом списке
+    API->>R: удалить старый jti, записать новый
+    API-->>U: новая пара access/refresh
+
+    Note over U,API: выход — отзыв
+    U->>API: POST /auth/logout {refresh}
+    API->>R: удалить jti (refresh больше не валиден)
+    API-->>U: 204

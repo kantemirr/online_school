@@ -1,0 +1,28 @@
+%% Sequence: оформление абонемента с имитацией платёжного шлюза.
+sequenceDiagram
+    autonumber
+    actor P as Родитель
+    participant API as FastAPI (payments)
+    participant DB as PostgreSQL
+    participant N as Уведомления
+    participant SMTP as Email (MailHog)
+
+    P->>API: POST /payments/checkout {plan, course_id?}
+    API->>DB: Subscription(pending) + Payment(pending)
+    API-->>P: {payment_id, сумма} (страница оплаты — имитация)
+
+    Note over P,API: имитация колбэка платёжного шлюза
+    P->>API: POST /payments/{id}/pay {outcome: paid|failed}
+    alt outcome = paid
+        API->>DB: Payment=paid, receipt_no, Subscription=active
+        API->>N: notify(payment_status)
+        N->>SMTP: письмо родителю «Оплата прошла»
+        API-->>P: success → доступ к платным курсам открыт
+        P->>API: GET /payments/{id}/receipt
+        API-->>P: квитанция (выходной документ)
+    else outcome = failed
+        API->>DB: Payment=failed (Subscription остаётся pending)
+        API-->>P: отказ — можно повторить checkout
+    end
+
+    Note over API,DB: cron expire_subscriptions: period_end < today → expired

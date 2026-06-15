@@ -1,0 +1,41 @@
+%% Sequence: автопроверка кода в изолированной песочнице (защищаемое ядро).
+sequenceDiagram
+    autonumber
+    actor S as Ученик
+    participant API as FastAPI (grading)
+    participant DB as PostgreSQL
+    participant R as Redis (очередь ARQ)
+    participant W as Воркер ARQ (code_check)
+    participant Box as Docker-песочница
+    participant AI as Anthropic API
+
+    S->>API: POST /assignments/{id}/submit/code {code}
+    API->>DB: Submission(status=queued)
+    API->>R: enqueue code_check(submission_id)
+    API-->>S: 202 {submission_id, status=queued}
+
+    R->>W: code_check(submission_id)
+    loop по каждому тест-кейсу
+        W->>Box: запуск контейнера (network none, лимиты, timeout)
+        Box-->>W: {stdout, stderr, exit_code, timed_out}
+    end
+    W->>W: агрегировать вердикт (passed/partial/failed)<br/>безопасный фидбэк (скрытые тесты — без эталона)
+    alt все прогоны — infra_error (Docker недоступен)
+        W->>DB: status=checked, result_json.unavailable=true
+    else есть результат
+        W->>DB: status=checked, verdict, score, result_json
+        opt passed
+            W->>DB: mark_lesson_completed → XP/достижения/лидерборд
+        end
+    end
+
+    loop опрос (~1.2 c)
+        S->>API: GET /submissions/{id}
+        API-->>S: status / verdict / тесты
+    end
+    opt не passed
+        S->>API: GET /submissions/{id}/hint
+        API->>AI: код + stderr (без эталонов)
+        AI-->>API: подсказка
+        API-->>S: {hint, source: ai|heuristic}
+    end

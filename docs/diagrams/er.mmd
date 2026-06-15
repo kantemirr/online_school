@@ -1,0 +1,212 @@
+%% ER-диаграмма БД CodeKids (PostgreSQL). Источник истины — ORM-модели app/modules/*/models.py.
+%% Рендер: вставьте содержимое на https://mermaid.live или откройте docs/DIAGRAMS.md.
+erDiagram
+    USERS ||--o| PARENT_PROFILES : "1:1"
+    USERS ||--o| STUDENT_PROFILES : "1:1"
+    USERS ||--o| TEACHER_PROFILES : "1:1"
+    USERS ||--o{ NOTIFICATIONS : "получает"
+    USERS ||--o{ AUDIT_LOG : "actor"
+
+    PARENT_PROFILES ||--o{ STUDENT_PROFILES : "ребёнок"
+    PARENT_PROFILES ||--o{ SUBSCRIPTIONS : "оформляет"
+
+    COURSES ||--o{ MODULES : "содержит"
+    MODULES ||--o{ LESSONS : "содержит"
+    LESSONS ||--o{ ASSIGNMENTS : "содержит"
+    ASSIGNMENTS ||--o{ QUESTIONS : "квиз"
+    ASSIGNMENTS ||--o{ CODE_TESTS : "тест-кейсы"
+
+    STUDENT_PROFILES ||--o{ ENROLLMENTS : "записан"
+    COURSES ||--o{ ENROLLMENTS : "на курс"
+    ENROLLMENTS ||--o{ LESSON_PROGRESS : "прогресс"
+    LESSONS ||--o{ LESSON_PROGRESS : "по уроку"
+
+    ASSIGNMENTS ||--o{ SUBMISSIONS : "отправки"
+    STUDENT_PROFILES ||--o{ SUBMISSIONS : "сдаёт"
+    TEACHER_PROFILES ||--o{ SUBMISSIONS : "проверяет"
+
+    ACHIEVEMENTS ||--o{ STUDENT_ACHIEVEMENTS : "выдаётся"
+    STUDENT_PROFILES ||--o{ STUDENT_ACHIEVEMENTS : "получает"
+
+    COURSES ||--o{ GROUPS : "по курсу"
+    TEACHER_PROFILES ||--o{ GROUPS : "ведёт"
+    GROUPS ||--o{ GROUP_MEMBERS : "состав"
+    STUDENT_PROFILES ||--o{ GROUP_MEMBERS : "член"
+    GROUPS ||--o{ SCHEDULE_SESSIONS : "занятия"
+    SCHEDULE_SESSIONS ||--o{ ATTENDANCE : "посещаемость"
+    STUDENT_PROFILES ||--o{ ATTENDANCE : "отмечен"
+
+    COURSES ||--o{ SUBSCRIPTIONS : "тариф COURSE"
+    SUBSCRIPTIONS ||--o{ PAYMENTS : "оплата"
+
+    USERS {
+        bigint id PK
+        string email UK "nullable (дети по PIN)"
+        string password_hash
+        enum role "student|parent|teacher|admin"
+        bool is_active
+        bool is_email_verified
+    }
+    PARENT_PROFILES {
+        bigint user_id PK,FK
+        string full_name
+        string phone
+        bool consent_pdn "ФЗ-152"
+    }
+    STUDENT_PROFILES {
+        bigint user_id PK,FK
+        bigint parent_id FK
+        string nickname
+        date birth_date
+        enum age_group
+        string login_username UK
+        string pin_hash
+        int xp
+        int streak
+        date last_active_date
+    }
+    TEACHER_PROFILES {
+        bigint user_id PK,FK
+        string full_name
+        string specialization
+    }
+    COURSES {
+        bigint id PK
+        string title
+        enum track
+        int age_min
+        int age_max
+        enum level
+        bool is_published
+        numeric price
+    }
+    MODULES {
+        bigint id PK
+        bigint course_id FK
+        string title
+        int order_index
+    }
+    LESSONS {
+        bigint id PK
+        bigint module_id FK
+        string title
+        int order_index
+        text theory_md
+        string video_url
+    }
+    ASSIGNMENTS {
+        bigint id PK
+        bigint lesson_id FK
+        enum type "quiz|code|project"
+        string title
+        int max_score
+    }
+    QUESTIONS {
+        bigint id PK
+        bigint assignment_id FK
+        text text
+        enum kind
+        jsonb options_json
+        jsonb correct_json
+    }
+    CODE_TESTS {
+        bigint id PK
+        bigint assignment_id FK
+        text stdin
+        text expected_stdout
+        bool is_hidden
+        int weight
+    }
+    ENROLLMENTS {
+        bigint id PK
+        bigint student_id FK
+        bigint course_id FK
+        enum status
+        numeric progress_pct
+    }
+    LESSON_PROGRESS {
+        bigint id PK
+        bigint enrollment_id FK
+        bigint lesson_id FK
+        enum status
+        int score
+        datetime completed_at
+    }
+    SUBMISSIONS {
+        bigint id PK
+        bigint assignment_id FK
+        bigint student_id FK
+        jsonb payload_json
+        text code
+        string file_url
+        enum status
+        enum verdict
+        int score
+        bigint checked_by FK
+    }
+    ACHIEVEMENTS {
+        bigint id PK
+        string code UK
+        string title
+        jsonb condition_json
+    }
+    STUDENT_ACHIEVEMENTS {
+        bigint student_id PK,FK
+        bigint achievement_id PK,FK
+        datetime earned_at
+    }
+    GROUPS {
+        bigint id PK
+        bigint course_id FK
+        bigint teacher_id FK
+        string name
+    }
+    GROUP_MEMBERS {
+        bigint group_id PK,FK
+        bigint student_id PK,FK
+    }
+    SCHEDULE_SESSIONS {
+        bigint id PK
+        bigint group_id FK
+        bigint teacher_id FK
+        datetime starts_at
+        datetime ends_at
+        string meeting_url
+    }
+    ATTENDANCE {
+        bigint session_id PK,FK
+        bigint student_id PK,FK
+        enum status "present|absent|excused"
+    }
+    SUBSCRIPTIONS {
+        bigint id PK
+        bigint parent_id FK
+        bigint course_id FK "nullable"
+        enum plan "course|monthly|annual"
+        date period_start
+        date period_end
+        enum status
+    }
+    PAYMENTS {
+        bigint id PK
+        bigint subscription_id FK
+        numeric amount
+        enum status "pending|paid|failed|refunded"
+        datetime paid_at
+        string receipt_no UK
+    }
+    NOTIFICATIONS {
+        bigint id PK
+        bigint user_id FK
+        enum type
+        jsonb payload_json
+        bool is_read
+    }
+    AUDIT_LOG {
+        bigint id PK
+        bigint actor_id FK
+        string actor_email
+        string action
+        string target
+        json meta_json
+    }
