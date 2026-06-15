@@ -27,6 +27,10 @@ import { ChildReportPage } from './pages/parent/ChildReportPage'
 import { ChildrenPage } from './pages/parent/ChildrenPage'
 import { ParentDashboardPage } from './pages/parent/ParentDashboardPage'
 import { PaymentsPage } from './pages/parent/PaymentsPage'
+import { GradingQueuePage } from './pages/teacher/GradingQueuePage'
+import { GroupAnalyticsPage } from './pages/teacher/GroupAnalyticsPage'
+import { GroupDetailPage } from './pages/teacher/GroupDetailPage'
+import { TeacherGroupsPage } from './pages/teacher/TeacherGroupsPage'
 
 const guard = (roles: UserRole[], el: ReactNode) => <RequireAuth roles={roles}>{el}</RequireAuth>
 const student = (el: ReactNode) => guard(['student'], el)
@@ -60,8 +64,10 @@ export const router = createBrowserRouter([
       { path: '/parent/children', element: guard(['parent'], <ChildrenPage />) },
       { path: '/parent/children/:id', element: guard(['parent'], <ChildReportPage />) },
       { path: '/parent/payments', element: guard(['parent'], <PaymentsPage />) },
-      { path: '/teacher', element: guard(['teacher'], <ComingSoonPage title="Мои группы" />) },
-      { path: '/teacher/queue', element: guard(['teacher'], <ComingSoonPage title="Очередь проверки" />) },
+      { path: '/teacher', element: guard(['teacher'], <TeacherGroupsPage />) },
+      { path: '/teacher/groups/:id', element: guard(['teacher'], <GroupDetailPage />) },
+      { path: '/teacher/groups/:id/analytics', element: guard(['teacher'], <GroupAnalyticsPage />) },
+      { path: '/teacher/queue', element: guard(['teacher'], <GradingQueuePage />) },
       { path: '/admin', element: guard(['admin'], <ComingSoonPage title="Админ-панель" />) },
       { path: '/admin/users', element: guard(['admin'], <ComingSoonPage title="Пользователи" />) },
       { path: '/admin/content', element: guard(['admin'], <ComingSoonPage title="Контент" />) },
