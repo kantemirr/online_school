@@ -1,0 +1,34 @@
+/* Токены дизайн-системы CodeKids как CSS-переменные (рантайм: sonner, конфетти,
+   произвольные места вне Tailwind). Источник правды по цвету — tailwind.config.ts. */
+:root {
+  --brand-50: #edebfd;
+  --brand-100: #d7d1fa;
+  --brand-200: #b7adf4;
+  --brand-400: #8a78ec;
+  --brand-500: #6c5ce7;
+  --brand-600: #5544d6;
+  --brand-700: #4536b8;
+  --brand-900: #2a2173;
+
+  --teal-500: #13c0bc;
+  --sun-500: #fdb833;
+  --coral-500: #ff6b9d;
+
+  --success-500: #34c77b;
+  --danger-500: #f26d6d;
+  --warning-500: #fbb13c;
+  --info-500: #5b9df9;
+
+  --ink: #20243a;
+  --muted: #5a6072;
+  --hint: #8a90a6;
+  --line: #e7e9f2;
+  --cloud: #f6f7fb;
+  --surface: #ffffff;
+
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+
+  --shadow-card: 0 6px 18px rgba(108, 92, 231, 0.08);
+}

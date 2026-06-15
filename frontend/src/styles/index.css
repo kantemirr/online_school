@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-cloud text-ink font-sans antialiased;
+  }
+  /* Дружелюбное фокус-кольцо для клавиатурной навигации (доступность) */
+  :focus-visible {
+    @apply outline-none ring-4 ring-brand/30;
+  }
+}
+
+@layer utilities {
+  /* Гасим декоративные анимации для пользователей с prefers-reduced-motion */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+}

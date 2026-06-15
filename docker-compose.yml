@@ -86,6 +86,10 @@ services:
       - "5173"
     depends_on:
       - backend
+    volumes:
+      # Dev: исходники с хоста (HMR), node_modules — из образа (анонимный том)
+      - ./frontend:/app
+      - /app/node_modules
 
   nginx:
     image: nginx:1.27-alpine
