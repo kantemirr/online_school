@@ -13,6 +13,7 @@ from app.modules.catalog.router import router as catalog_router
 from app.modules.gamification.router import router as gamification_router
 from app.modules.grading.router import router as grading_router
 from app.modules.learning.router import router as learning_router
+from app.modules.notifications.router import router as notifications_router
 from app.modules.scheduling.router import router as scheduling_router
 from app.modules.users.router import router as users_router
 
@@ -26,3 +27,4 @@ api_router.include_router(learning_router)
 api_router.include_router(grading_router)
 api_router.include_router(gamification_router)
 api_router.include_router(scheduling_router)
+api_router.include_router(notifications_router)
