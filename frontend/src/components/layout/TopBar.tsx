@@ -28,8 +28,8 @@ export function TopBar() {
   }
 
   return (
-    <header className="flex h-16 items-center justify-between border-b border-line bg-surface px-4 lg:px-6">
-      <span className="text-lg font-extrabold text-brand lg:hidden">CodeKids</span>
+    <header className="flex h-16 items-center justify-between border-b border-line bg-surface px-4 lg:hidden">
+      <span className="text-lg font-extrabold text-brand">CodeKids</span>
       <div className="ml-auto flex items-center gap-3">
         <Link
           to="/notifications"
