@@ -46,3 +46,13 @@ async def redis():
     from app.core.redis import redis_client
 
     return redis_client
+
+
+@pytest_asyncio.fixture(autouse=True, loop_scope="session")
+async def _clear_rate_limits():
+    """Сбрасывает счётчики rate-limit перед каждым тестом (общий прод-Redis)."""
+    from app.core.redis import redis_client
+
+    async for key in redis_client.scan_iter(match="auth:rl:*"):
+        await redis_client.delete(key)
+    yield
