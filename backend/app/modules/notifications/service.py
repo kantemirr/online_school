@@ -97,6 +97,59 @@ async def notify_achievement(db: AsyncSession, student_id: int, code: str, title
     )
 
 
+async def notify_deadline(db: AsyncSession, student_id: int, assignment_id: int, title: str, due_at) -> None:
+    await notify_student(
+        db, student_id, NotificationType.DEADLINE,
+        {"assignment_id": assignment_id, "title": title, "due_at": due_at.isoformat()},
+        email_subject="Приближается срок сдачи задания",
+        email_html=(
+            f"<p>Скоро срок по заданию «<b>{title}</b>» — до {due_at:%d.%m.%Y %H:%M}. "
+            "Загляните в личный кабинет CodeKids.</p>"
+        ),
+    )
+
+
+async def notify_due_soon(db: AsyncSession) -> int:
+    """Напоминание о заданиях со сроком в ближайшие 24 ч — записанным ученикам,
+    ещё не завершившим урок. Вызывается фоновым cron раз в сутки."""
+    from datetime import datetime, timedelta, timezone
+
+    from sqlalchemy import select
+
+    from app.db.enums import EnrollmentStatus, LessonProgressStatus
+    from app.modules.catalog.models import Assignment, Lesson, Module
+    from app.modules.learning.models import Enrollment, LessonProgress
+
+    now = datetime.now(timezone.utc)
+    soon = now + timedelta(hours=24)
+    due_rows = await db.execute(
+        select(Assignment.id, Assignment.title, Assignment.due_at, Assignment.lesson_id, Module.course_id)
+        .join(Lesson, Lesson.id == Assignment.lesson_id)
+        .join(Module, Module.id == Lesson.module_id)
+        .where(Assignment.due_at.is_not(None), Assignment.due_at > now, Assignment.due_at <= soon)
+    )
+    sent = 0
+    for aid, title, due_at, lesson_id, course_id in due_rows.all():
+        enr_rows = await db.execute(
+            select(Enrollment.id, Enrollment.student_id).where(
+                Enrollment.course_id == course_id,
+                Enrollment.status == EnrollmentStatus.ACTIVE,
+            )
+        )
+        for enr_id, student_id in enr_rows.all():
+            status = await db.scalar(
+                select(LessonProgress.status).where(
+                    LessonProgress.enrollment_id == enr_id,
+                    LessonProgress.lesson_id == lesson_id,
+                )
+            )
+            if status == LessonProgressStatus.COMPLETED:
+                continue
+            await notify_deadline(db, student_id, aid, title, due_at)
+            sent += 1
+    return sent
+
+
 # ── Чтение ───────────────────────────────────────────────────────────────────
 async def list_mine(db: AsyncSession, user_id: int, *, unread_only: bool, limit: int) -> list[NotificationOut]:
     rows = await repo.list_for_user(db, user_id, unread_only=unread_only, limit=limit)

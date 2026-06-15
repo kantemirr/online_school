@@ -69,8 +69,19 @@ async def generate_report(ctx: dict, child_id: int) -> str:
     return path
 
 
+async def notify_due_soon(ctx: dict) -> int:
+    """Рассылает напоминания о заданиях со сроком в ближайшие 24 ч."""
+    from app.db.session import SessionLocal
+    from app.modules.notifications import service as notifications
+
+    async with SessionLocal() as db:
+        sent = await notifications.notify_due_soon(db)
+    logger.info("deadline reminders sent: %s", sent)
+    return sent
+
+
 # Список задач, который видит ARQ WorkerSettings.
 FUNCTIONS = [
     ping, send_email, code_check, evaluate_achievements, recalc_leaderboard,
-    expire_subscriptions, generate_report,
+    expire_subscriptions, generate_report, notify_due_soon,
 ]

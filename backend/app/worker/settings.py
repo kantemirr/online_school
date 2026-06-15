@@ -9,7 +9,7 @@ from arq import cron
 from arq.connections import RedisSettings
 
 from app.core.config import get_settings
-from app.worker.tasks import FUNCTIONS, expire_subscriptions, recalc_leaderboard
+from app.worker.tasks import FUNCTIONS, expire_subscriptions, notify_due_soon, recalc_leaderboard
 
 _settings = get_settings()
 
@@ -28,4 +28,5 @@ class WorkerSettings:
     cron_jobs = [
         cron(expire_subscriptions, hour=3, minute=0),  # раз в сутки: истёкшие абонементы → expired
         cron(recalc_leaderboard, minute=0),            # раз в час: пересчёт лидербордов из БД
+        cron(notify_due_soon, hour=9, minute=0),       # раз в сутки: напоминания о дедлайнах
     ]
