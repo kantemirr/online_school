@@ -1,11 +1,16 @@
 import { type ReactNode } from 'react'
 
-import { createBrowserRouter } from 'react-router-dom'
+import { Navigate, createBrowserRouter } from 'react-router-dom'
 
 import { AppShell } from './components/layout/AppShell'
 import { RequireAuth } from './features/auth/RequireAuth'
+import { ROLE_HOME } from './lib/roles'
 import type { UserRole } from './lib/types'
+import { useAppSelector } from './store/hooks'
 import { ComingSoonPage } from './pages/ComingSoonPage'
+import { LandingPage } from './pages/LandingPage'
+import { OnboardingPage } from './pages/OnboardingPage'
+import { ProfilePage } from './pages/ProfilePage'
 import { StyleguidePage } from './pages/StyleguidePage'
 import { ChildLoginPage } from './pages/auth/ChildLoginPage'
 import { LoginPage } from './pages/auth/LoginPage'
@@ -41,13 +46,22 @@ import { CourseEditorPage } from './pages/admin/CourseEditorPage'
 const guard = (roles: UserRole[], el: ReactNode) => <RequireAuth roles={roles}>{el}</RequireAuth>
 const student = (el: ReactNode) => guard(['student'], el)
 
+// Публичный корень: гость видит лендинг, авторизованный — уходит в свой кабинет.
+function RootGate() {
+  const { accessToken, user } = useAppSelector((s) => s.auth)
+  if (accessToken && user) return <Navigate to={ROLE_HOME[user.role]} replace />
+  return <LandingPage />
+}
+
 export const router = createBrowserRouter([
+  { path: '/', element: <RootGate /> },
   { path: '/login', element: <LoginPage /> },
   { path: '/login/child', element: <ChildLoginPage /> },
   { path: '/register', element: <RegisterPage /> },
   { path: '/verify-email', element: <VerifyEmailPage /> },
   { path: '/reset-password', element: <ResetRequestPage /> },
   { path: '/reset-password/confirm', element: <ResetConfirmPage /> },
+  { path: '/onboarding', element: student(<OnboardingPage />) },
   { path: '/styleguide', element: <StyleguidePage /> },
   {
     element: (
@@ -56,7 +70,7 @@ export const router = createBrowserRouter([
       </RequireAuth>
     ),
     children: [
-      { path: '/', element: student(<DashboardPage />) },
+      { path: '/home', element: student(<DashboardPage />) },
       { path: '/catalog', element: student(<CatalogPage />) },
       { path: '/courses/:id', element: student(<CoursePage />) },
       { path: '/learn/:courseId', element: student(<LearnCoursePage />) },
@@ -66,6 +80,7 @@ export const router = createBrowserRouter([
       { path: '/leaderboard', element: student(<LeaderboardPage />) },
       { path: '/schedule', element: student(<SchedulePage />) },
       { path: '/notifications', element: <NotificationsPage /> },
+      { path: '/profile', element: <ProfilePage /> },
       { path: '/parent', element: guard(['parent'], <ParentDashboardPage />) },
       { path: '/parent/children', element: guard(['parent'], <ChildrenPage />) },
       { path: '/parent/children/:id', element: guard(['parent'], <ChildReportPage />) },

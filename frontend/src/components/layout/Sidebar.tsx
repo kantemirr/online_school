@@ -19,7 +19,7 @@ export function Sidebar() {
           <NavLink
             key={to}
             to={to}
-            end={to === '/' || to === '/parent' || to === '/teacher' || to === '/admin'}
+            end={to === '/home' || to === '/parent' || to === '/teacher' || to === '/admin'}
             className={({ isActive }) =>
               cn(
                 'flex items-center gap-3 rounded-md px-3 py-2.5 font-bold transition',

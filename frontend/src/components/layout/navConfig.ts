@@ -19,7 +19,7 @@ export interface NavItem {
 }
 
 const STUDENT: NavItem[] = [
-  { to: '/', label: 'Главная', icon: Home },
+  { to: '/home', label: 'Главная', icon: Home },
   { to: '/catalog', label: 'Курсы', icon: BookOpen },
   { to: '/achievements', label: 'Награды', icon: Trophy },
   { to: '/schedule', label: 'Расписание', icon: Calendar },

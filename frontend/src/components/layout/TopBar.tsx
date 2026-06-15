@@ -43,7 +43,9 @@ export function TopBar() {
             </span>
           )}
         </Link>
-        <Avatar name={user?.display_name ?? user?.email ?? 'CodeKids'} size={36} />
+        <Link to="/profile" aria-label="Профиль">
+          <Avatar name={user?.display_name ?? user?.email ?? 'CodeKids'} size={36} />
+        </Link>
         <Tooltip content="Выйти">
           <button
             onClick={handleLogout}

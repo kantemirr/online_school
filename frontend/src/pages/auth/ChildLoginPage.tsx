@@ -34,7 +34,11 @@ export function ChildLoginPage() {
       dispatch(setTokens({ accessToken: tokens.access_token, refreshToken: tokens.refresh_token }))
       const me = await fetchMe().unwrap()
       dispatch(setUser({ id: me.id, email: me.email, role: me.role, display_name: me.display_name }))
-      nav('/', { replace: true })
+      if (!localStorage.getItem('codekids_onboarded')) {
+        nav('/onboarding', { replace: true })
+      } else {
+        nav('/home', { replace: true })
+      }
     } catch {
       notify.error('Неверный логин или PIN')
     }

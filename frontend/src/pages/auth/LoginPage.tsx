@@ -35,7 +35,11 @@ export function LoginPage() {
       dispatch(setTokens({ accessToken: tokens.access_token, refreshToken: tokens.refresh_token }))
       const me = await fetchMe().unwrap()
       dispatch(setUser({ id: me.id, email: me.email, role: me.role, display_name: me.display_name }))
-      nav(ROLE_HOME[me.role], { replace: true })
+      if (me.role === 'student' && !localStorage.getItem('codekids_onboarded')) {
+        nav('/onboarding', { replace: true })
+      } else {
+        nav(ROLE_HOME[me.role], { replace: true })
+      }
     } catch (e) {
       notify.error((e as { data?: { error?: { message?: string } } })?.data?.error?.message ?? 'Не удалось войти')
     }

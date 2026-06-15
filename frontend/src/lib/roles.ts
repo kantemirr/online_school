@@ -2,7 +2,7 @@ import type { UserRole } from './types'
 
 /** Домашний маршрут кабинета по роли (куда вести после входа). */
 export const ROLE_HOME: Record<UserRole, string> = {
-  student: '/',
+  student: '/home',
   parent: '/parent',
   teacher: '/teacher',
   admin: '/admin',
