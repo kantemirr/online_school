@@ -12,6 +12,9 @@ from tests.integration.conftest import infra_available
 if not infra_available():
     pytest.skip("нужны Postgres/Redis (запуск в контейнере)", allow_module_level=True)
 
+# Все тесты пакета — на одном session-loop (общий пул Redis).
+pytestmark = pytest.mark.asyncio(loop_scope="session")
+
 
 async def _verify_token_for(redis, user_id: int) -> str | None:
     async for key in redis.scan_iter(match="auth:verify:*"):
@@ -20,7 +23,6 @@ async def _verify_token_for(redis, user_id: int) -> str | None:
     return None
 
 
-@pytest.mark.asyncio
 async def test_full_auth_flow(client, redis):
     email = f"parent_{uuid4().hex[:10]}@example.com"
     username = f"kid_{uuid4().hex[:8]}"

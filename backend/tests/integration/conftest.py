@@ -27,7 +27,7 @@ def infra_available() -> bool:
     return True
 
 
-@pytest_asyncio.fixture
+@pytest_asyncio.fixture(loop_scope="session")
 async def client(monkeypatch):
     # Не дёргаем реальную очередь email — подменяем enqueue на no-op.
     async def _noop(*args, **kwargs):
@@ -41,7 +41,7 @@ async def client(monkeypatch):
         yield c
 
 
-@pytest_asyncio.fixture
+@pytest_asyncio.fixture(loop_scope="session")
 async def redis():
     from app.core.redis import redis_client
 
