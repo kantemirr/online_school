@@ -29,11 +29,12 @@ export function Modal({ open, onOpenChange, title, children, className }: ModalP
                 exit={{ opacity: 0 }}
               />
             </Dialog.Overlay>
-            <Dialog.Content asChild forceMount>
-              <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Обычная центрирующая обёртка: клик по ней — снаружи Content → Radix закрывает. */}
+            <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4">
+              <Dialog.Content asChild forceMount>
                 <motion.div
                   className={cn(
-                    'pointer-events-auto w-full max-w-md rounded-2xl bg-surface p-6 shadow-pop',
+                    'w-full max-w-md rounded-2xl bg-surface p-6 shadow-pop',
                     className,
                   )}
                   variants={modalPop}
@@ -56,8 +57,8 @@ export function Modal({ open, onOpenChange, title, children, className }: ModalP
                   </div>
                   {children}
                 </motion.div>
-              </div>
-            </Dialog.Content>
+              </Dialog.Content>
+            </div>
           </Dialog.Portal>
         )}
       </AnimatePresence>
