@@ -7,8 +7,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_db, get_redis
 from app.modules.auth import service
+from app.modules.auth.deps import CurrentUser
 from app.modules.auth.ratelimit import enforce_rate_limit
 from app.modules.auth.schemas import (
+    ChangePasswordIn,
     ChildLoginIn,
     LoginIn,
     LogoutIn,
@@ -88,3 +90,8 @@ async def password_reset_request(
 @router.post("/password-reset/confirm", status_code=status.HTTP_204_NO_CONTENT)
 async def password_reset_confirm(data: PasswordResetConfirmIn, db: DbDep, redis: RedisDep):
     await service.confirm_password_reset(db, redis, data.token, data.new_password)
+
+
+@router.post("/change-password", response_model=TokenPair)
+async def change_password(data: ChangePasswordIn, user: CurrentUser, db: DbDep, redis: RedisDep):
+    return await service.change_password(db, redis, user, data.old_password, data.new_password)

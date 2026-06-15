@@ -149,3 +149,15 @@ async def confirm_password_reset(
     await db.commit()
     # Отзываем все активные refresh — после сброса нужен повторный вход
     await tokens.revoke_all_refresh(redis, user_id)
+
+
+async def change_password(
+    db: AsyncSession, redis: aioredis.Redis, user: User, old_password: str, new_password: str
+) -> TokenPair:
+    if not verify_password(old_password, user.password_hash):
+        raise AuthError("Неверный текущий пароль", code="bad_password")
+    user.password_hash = hash_password(new_password)
+    await db.commit()
+    # Завершаем прочие сессии и выдаём свежую пару текущей сессии
+    await tokens.revoke_all_refresh(redis, user.id)
+    return await _issue_pair(redis, user)

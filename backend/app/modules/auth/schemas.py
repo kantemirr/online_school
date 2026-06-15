@@ -55,6 +55,11 @@ class PasswordResetConfirmIn(BaseModel):
     new_password: str = Field(min_length=8, max_length=128)
 
 
+class ChangePasswordIn(BaseModel):
+    old_password: str
+    new_password: str = Field(min_length=8, max_length=128)
+
+
 # ── Ответы ───────────────────────────────────────────────────────────────────
 class TokenPair(BaseModel):
     access_token: str
