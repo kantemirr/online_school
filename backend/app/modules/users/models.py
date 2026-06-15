@@ -76,6 +76,7 @@ class StudentProfile(TimestampMixin, Base):
     # Геймификация
     xp: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     streak: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    last_active_date: Mapped[date | None] = mapped_column(Date)  # для расчёта streak
 
     user: Mapped["User"] = relationship(back_populates="student_profile", foreign_keys=[user_id])
     parent: Mapped["ParentProfile | None"] = relationship(
