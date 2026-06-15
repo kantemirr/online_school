@@ -42,29 +42,85 @@ docker compose up --build
 
 После старта:
 - Приложение (через Nginx): http://localhost:8080
-- Документация API (Swagger): http://localhost:8080/docs
-- Health-check: http://localhost:8080/api/v1/health
+- Документация API (Swagger): http://localhost:8080/docs — интерактивная схема всех эндпоинтов
+- Health-check: http://localhost:8080/api/v1/health → `{"status":"ok","db":true,"redis":true}`
+- Письма (MailHog): http://localhost:8025
 
-Сборка образа песочницы (нужна на Этапе 5b):
+Сборка образа песочницы (для автопроверки кода):
 
 ```bash
 docker compose build sandbox
 ```
 
-## Миграции
+## Демо-данные и учётные записи
+
+Заполнить чистую БД реалистичными демо-данными (8 курсов, 30 детей, родители,
+преподаватели, группы, платежи) одной командой:
 
 ```bash
-docker compose exec backend alembic revision --autogenerate -m "описание"
-docker compose exec backend alembic upgrade head
+docker compose exec backend python -m app.db.reset_and_seed
+```
+
+| Роль | Логин | Пароль / PIN | Страница входа |
+|---|---|---|---|
+| Администратор | `admin@codekids.ru` | `admin12345` | `/login` |
+| Родитель | `parent@codekids.ru` | `parent12345` | `/login` |
+| Преподаватель | `teacher@codekids.ru` | `teacher12345` | `/login` |
+| Ученик | `kid` | PIN `1234` | `/login/child` |
+
+Подробное руководство по ролям — [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md).
+
+## Запуск без Docker (для разработки)
+
+Нужны Python 3.12, Node 20 и доступные локально PostgreSQL и Redis.
+
+```bash
+# Backend
+cd backend
+python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+# заполнить DATABASE_URL/REDIS_URL в окружении (см. .env.example)
+alembic upgrade head
+python -m app.modules.auth.bootstrap        # bootstrap-админ
+python -m app.db.reset_and_seed             # демо-данные (dev)
+uvicorn app.main:app --reload --port 8000
+
+# Worker (отдельный терминал)
+arq app.worker.settings.WorkerSettings
+
+# Frontend (отдельный терминал)
+cd frontend && npm install && npm run dev    # http://localhost:5173 (проксирует /api → backend)
+```
+
+## Миграции
+
+Текущие миграции Alembic: `initial` → `email nullable` → `last_active_date`
+(streak) → `audit_log`. Команды:
+
+```bash
+docker compose exec backend alembic upgrade head                      # применить
+docker compose exec backend alembic revision --autogenerate -m "..."  # новая
 ```
 
 ## Тесты
 
 ```bash
-docker compose exec backend pytest
+docker compose exec backend pytest -q     # backend (62 теста: unit + интеграция + контрольный пример)
+docker compose exec frontend npm test     # frontend (Vitest: утилиты)
 ```
+
+Матрица тест-кейсов и контрольный пример — [`backend/tests/TESTING.md`](backend/tests/TESTING.md).
+
+## Документация
+
+- [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md) — руководство пользователя по ролям (Приложение В).
+- [`docs/DIAGRAMS.md`](docs/DIAGRAMS.md) — диаграммы (ER, архитектура, sequence, развёртывание).
+- [`DEPLOY.md`](DEPLOY.md) — облачный деплой (Render + Vercel).
+- [`backend/tests/TESTING.md`](backend/tests/TESTING.md) — тест-кейсы и контрольный пример.
 
 ## Дорожная карта
 
-Полный план реализации по 15 этапам — в файле плана проекта
-(`Роадмап реализации`). Текущий статус: **Этап 0 — фундамент**.
+Реализованы все 14 функциональных этапов (фундамент → модель данных → аутентификация/RBAC →
+каталог → прохождение → задания и **песочница** → геймификация → группы/расписание →
+уведомления → оплата → аналитика → админ-панель → детский UI → тестирование → облачная
+инфраструктура). Осталось по тексту ВКР: Глава 4 (экономика/надёжность).
