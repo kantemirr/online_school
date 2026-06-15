@@ -1,10 +1,14 @@
-"""Сид демонстрационного контента каталога.
+"""Сид демонстрационного контента каталога (8 курсов).
 
 Запуск: `python -m app.db.seeds_content`
-Идемпотентно: если демо-курс с известным названием уже есть — пропускает.
-Наполняет каталог материалом для Этапов 4-5 и скриншотов ВКР.
+Идемпотентно: курс с известным названием не пересоздаётся.
+
+Демо-курс «Python с нуля для детей» создаётся ПЕРВЫМ и не меняется — на его
+квиз (верный вариант индекс 0) и код-задание «Квадрат числа» завязаны тесты.
+Остальные 7 курсов задаются декларативно (CATALOG) и строятся builder'ом.
 """
 import asyncio
+from decimal import Decimal
 
 from sqlalchemy import select
 
@@ -43,7 +47,6 @@ async def seed_demo_course() -> bool:
             is_published=True,
         )
 
-        # Модуль 1
         m1 = Module(course=course, title="Знакомство с Python", order_index=1)
         Lesson(
             module=m1, title="Что такое программирование", order_index=1,
@@ -61,7 +64,6 @@ async def seed_demo_course() -> bool:
             correct_json=[0],
         ))
 
-        # Модуль 2
         m2 = Module(course=course, title="Переменные и числа", order_index=2)
         l3 = Lesson(
             module=m2, title="Переменные", order_index=1,
@@ -80,9 +82,240 @@ async def seed_demo_course() -> bool:
         return True
 
 
+# ── Декларативный каталог (ещё 7 курсов) ─────────────────────────────────────
+def _q(text, options, correct, kind=QuestionKind.SINGLE):
+    return {"text": text, "kind": kind, "options": options, "correct": correct}
+
+
+def _t(stdin, expected, hidden=False):
+    return {"stdin": stdin, "expected": expected, "hidden": hidden}
+
+
+CATALOG: list[dict] = [
+    {
+        "title": "Scratch: первые игры",
+        "description": "Визуальное программирование: собираем первую игру из блоков.",
+        "track": CourseTrack.SCRATCH, "level": CourseLevel.BEGINNER,
+        "age_min": 8, "age_max": 10, "price": Decimal("0.00"),
+        "modules": [
+            {"title": "Знакомство со Scratch", "lessons": [
+                {"title": "Сцена и спрайты", "theory_md": "**Спрайт** — это персонаж. **Сцена** — фон, где он живёт.",
+                 "assignments": [{"type": "quiz", "title": "Основы Scratch", "questions": [
+                     _q("Как называется персонаж в Scratch?", ["Спрайт", "Робот", "Пиксель"], [0]),
+                     _q("Из чего собирают программу в Scratch?", ["Из блоков", "Из текста", "Из чисел"], [0]),
+                 ]}]},
+                {"title": "Движение и события", "theory_md": "Блок «когда нажат флажок» запускает программу. Блоки движения двигают спрайт.",
+                 "assignments": [{"type": "quiz", "title": "Движение", "questions": [
+                     _q("Какой блок запускает программу?", ["Когда нажат флажок", "Идти 10 шагов", "Повернуть"], [0]),
+                 ]}]},
+            ]},
+            {"title": "Делаем игру", "lessons": [
+                {"title": "Цикл и условие", "theory_md": "Цикл повторяет действия. Условие проверяет, например, касание края.",
+                 "assignments": []},
+                {"title": "Проект: своя игра", "theory_md": "Собери простую игру: герой ловит падающие предметы.",
+                 "assignments": [{"type": "project", "title": "Моя первая игра"}]},
+            ]},
+        ],
+    },
+    {
+        "title": "Scratch: анимация и истории",
+        "description": "Создаём мультфильмы и интерактивные истории в Scratch.",
+        "track": CourseTrack.SCRATCH, "level": CourseLevel.BEGINNER,
+        "age_min": 9, "age_max": 11, "price": Decimal("0.00"),
+        "modules": [
+            {"title": "Костюмы и анимация", "lessons": [
+                {"title": "Смена костюмов", "theory_md": "Анимация — это быстрая смена костюмов спрайта.",
+                 "assignments": [{"type": "quiz", "title": "Анимация", "questions": [
+                     _q("Что создаёт анимацию персонажа?", ["Смена костюмов", "Смена фона", "Звук"], [0]),
+                 ]}]},
+                {"title": "Диалоги и звук", "theory_md": "Блок «говорить» показывает реплику. Можно добавить звук.",
+                 "assignments": [{"type": "project", "title": "Анимированная история"}]},
+            ]},
+        ],
+    },
+    {
+        "title": "Python: продолжаем",
+        "description": "Условия, циклы и строки на Python с практикой в песочнице.",
+        "track": CourseTrack.PYTHON, "level": CourseLevel.INTERMEDIATE,
+        "age_min": 11, "age_max": 14, "price": Decimal("1290.00"),
+        "modules": [
+            {"title": "Условия", "lessons": [
+                {"title": "if / else", "theory_md": "`if` выполняет код при условии, `else` — иначе.",
+                 "assignments": [
+                     {"type": "quiz", "title": "Условия", "questions": [
+                         _q("Что выполнит `if x > 0:`?", ["Код, если x больше 0", "Код всегда", "Ничего"], [0]),
+                     ]},
+                     {"type": "code", "title": "Чётное или нечётное",
+                      "tests": [_t("4\n", "чётное"), _t("7\n", "нечётное", hidden=True)]},
+                 ]},
+            ]},
+            {"title": "Циклы", "lessons": [
+                {"title": "Цикл for", "theory_md": "`for i in range(n)` повторяет действие n раз.",
+                 "assignments": [
+                     {"type": "code", "title": "Сумма от 1 до N",
+                      "tests": [_t("5\n", "15"), _t("10\n", "55", hidden=True)]},
+                 ]},
+                {"title": "FizzBuzz", "theory_md": "Классическая задача: делимость на 3 и 5.",
+                 "assignments": [
+                     {"type": "code", "title": "FizzBuzz",
+                      "tests": [_t("15\n", "FizzBuzz"), _t("3\n", "Fizz"), _t("5\n", "Buzz", hidden=True), _t("7\n", "7", hidden=True)]},
+                 ]},
+            ]},
+            {"title": "Строки", "lessons": [
+                {"title": "Работа со строками", "theory_md": "Строки можно переворачивать срезом `s[::-1]`.",
+                 "assignments": [
+                     {"type": "code", "title": "Переверни строку",
+                      "tests": [_t("привет\n", "тевирп"), _t("код\n", "док", hidden=True)]},
+                 ]},
+            ]},
+        ],
+    },
+    {
+        "title": "Python: игры с черепашкой",
+        "description": "Рисуем и программируем с модулем turtle — весело и наглядно.",
+        "track": CourseTrack.PYTHON, "level": CourseLevel.BEGINNER,
+        "age_min": 10, "age_max": 13, "price": Decimal("990.00"),
+        "modules": [
+            {"title": "Черепашья графика", "lessons": [
+                {"title": "Первые шаги черепашки", "theory_md": "`forward()` двигает черепашку, `right()` поворачивает.",
+                 "assignments": [{"type": "quiz", "title": "Turtle", "questions": [
+                     _q("Что делает `forward(100)`?", ["Двигает вперёд на 100", "Рисует круг", "Меняет цвет"], [0]),
+                 ]}]},
+                {"title": "Рисуем квадрат", "theory_md": "Квадрат — это 4 раза «вперёд + поворот на 90°».",
+                 "assignments": [
+                     {"type": "code", "title": "Периметр квадрата",
+                      "tests": [_t("4\n", "16"), _t("7\n", "28", hidden=True)]},
+                     {"type": "project", "title": "Рисунок черепашкой"},
+                 ]},
+            ]},
+        ],
+    },
+    {
+        "title": "Веб: HTML и CSS",
+        "description": "Делаем первую веб-страницу: разметка HTML и стили CSS.",
+        "track": CourseTrack.WEB, "level": CourseLevel.BEGINNER,
+        "age_min": 11, "age_max": 14, "price": Decimal("0.00"),
+        "modules": [
+            {"title": "HTML", "lessons": [
+                {"title": "Теги и структура", "theory_md": "HTML строится из **тегов**: `<h1>`, `<p>`, `<a>`.",
+                 "assignments": [{"type": "quiz", "title": "HTML", "questions": [
+                     _q("Какой тег для заголовка?", ["<h1>", "<p>", "<div>"], [0]),
+                     _q("Какой тег для ссылки?", ["<a>", "<link>", "<href>"], [0]),
+                 ]}]},
+            ]},
+            {"title": "CSS", "lessons": [
+                {"title": "Стили и цвета", "theory_md": "CSS задаёт оформление: `color`, `font-size`, `background`.",
+                 "assignments": [
+                     {"type": "quiz", "title": "CSS", "questions": [
+                         _q("Какое свойство задаёт цвет текста?", ["color", "background", "border"], [0]),
+                     ]},
+                     {"type": "project", "title": "Моя страница о себе"},
+                 ]},
+            ]},
+        ],
+    },
+    {
+        "title": "Веб: интерактив на JavaScript",
+        "description": "Оживляем страницу: переменные, события и DOM на JavaScript.",
+        "track": CourseTrack.WEB, "level": CourseLevel.INTERMEDIATE,
+        "age_min": 12, "age_max": 14, "price": Decimal("1490.00"),
+        "modules": [
+            {"title": "Основы JS", "lessons": [
+                {"title": "Переменные и функции", "theory_md": "`let x = 5;` — переменная. `function f(){}` — функция.",
+                 "assignments": [{"type": "quiz", "title": "JavaScript", "questions": [
+                     _q("Как объявить переменную в JS?", ["let x = 5", "x := 5", "var: x"], [0]),
+                 ]}]},
+                {"title": "События и DOM", "theory_md": "`addEventListener('click', ...)` реагирует на клик.",
+                 "assignments": [{"type": "project", "title": "Интерактивная кнопка"}]},
+            ]},
+        ],
+    },
+    {
+        "title": "Алгоритмы на Python",
+        "description": "Базовые алгоритмы и решение задач с автопроверкой в песочнице.",
+        "track": CourseTrack.ALGORITHMS, "level": CourseLevel.INTERMEDIATE,
+        "age_min": 12, "age_max": 14, "price": Decimal("1290.00"),
+        "modules": [
+            {"title": "Числа", "lessons": [
+                {"title": "Максимум и минимум", "theory_md": "Сравнение чисел: `max(a, b)`.",
+                 "assignments": [
+                     {"type": "code", "title": "Максимум из двух",
+                      "tests": [_t("3 8\n", "8"), _t("10 2\n", "10", hidden=True)]},
+                 ]},
+                {"title": "Факториал", "theory_md": "Факториал n! = 1·2·…·n.",
+                 "assignments": [
+                     {"type": "code", "title": "Факториал",
+                      "tests": [_t("5\n", "120"), _t("3\n", "6", hidden=True)]},
+                 ]},
+                {"title": "Простое число", "theory_md": "Простое число делится только на 1 и само себя.",
+                 "assignments": [
+                     {"type": "quiz", "title": "Простые числа", "questions": [
+                         _q("Какое из чисел простое?", ["7", "8", "9"], [0]),
+                     ]},
+                     {"type": "code", "title": "Простое ли число",
+                      "tests": [_t("7\n", "да"), _t("8\n", "нет", hidden=True)]},
+                 ]},
+            ]},
+            {"title": "Строки", "lessons": [
+                {"title": "Подсчёт гласных", "theory_md": "Перебираем символы и считаем гласные.",
+                 "assignments": [
+                     {"type": "code", "title": "Сколько гласных",
+                      "tests": [_t("привет\n", "2"), _t("программа\n", "3", hidden=True)]},
+                 ]},
+            ]},
+        ],
+    },
+]
+
+_TYPE = {"quiz": AssignmentType.QUIZ, "code": AssignmentType.CODE, "project": AssignmentType.PROJECT}
+
+
+def _build_course(session, spec: dict) -> Course:
+    course = Course(
+        title=spec["title"], description=spec["description"], track=spec["track"],
+        level=spec["level"], age_min=spec["age_min"], age_max=spec["age_max"],
+        price=spec["price"], is_published=True,
+    )
+    for mi, mspec in enumerate(spec["modules"], start=1):
+        module = Module(course=course, title=mspec["title"], order_index=mi)
+        for li, lspec in enumerate(mspec["lessons"], start=1):
+            lesson = Lesson(module=module, title=lspec["title"], order_index=li,
+                            theory_md=lspec.get("theory_md"))
+            for aspec in lspec.get("assignments", []):
+                assignment = Assignment(
+                    lesson=lesson, type=_TYPE[aspec["type"]],
+                    title=aspec["title"], max_score=aspec.get("max_score", 100),
+                )
+                for qspec in aspec.get("questions", []):
+                    assignment.questions.append(Question(
+                        text=qspec["text"], kind=qspec["kind"],
+                        options_json=qspec["options"], correct_json=qspec["correct"],
+                    ))
+                for tspec in aspec.get("tests", []):
+                    assignment.code_tests.append(CodeTest(
+                        stdin=tspec["stdin"], expected_stdout=tspec["expected"],
+                        is_hidden=tspec["hidden"], weight=1,
+                    ))
+    return course
+
+
+async def seed_extra_courses() -> int:
+    created = 0
+    async with SessionLocal() as session:
+        for spec in CATALOG:
+            exists = await session.scalar(select(Course).where(Course.title == spec["title"]))
+            if exists is not None:
+                continue
+            session.add(_build_course(session, spec))
+            created += 1
+        await session.commit()
+    return created
+
+
 async def main() -> None:
-    created = await seed_demo_course()
-    print(f"seed demo content: {'создан' if created else 'уже существует'} ({DEMO_TITLE})")
+    demo = await seed_demo_course()
+    extra = await seed_extra_courses()
+    print(f"seed content: demo={'создан' if demo else 'есть'}, доп. курсов создано: {extra}")
 
 
 if __name__ == "__main__":
