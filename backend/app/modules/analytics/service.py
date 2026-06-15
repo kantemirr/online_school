@@ -87,6 +87,17 @@ async def export_report(db: AsyncSession, parent: User, child_id: int) -> Report
     return ReportExportOut(status="queued", detail="Отчёт формируется, файл появится в загрузках.")
 
 
+async def render_report(db: AsyncSession, parent: User, child_id: int) -> str:
+    """HTML-отчёт об успеваемости ребёнка для немедленного просмотра/печати."""
+    await _owned_child(db, parent, child_id)
+    from app.modules.analytics.report import build_report_html
+
+    html = await build_report_html(db, child_id)
+    if html is None:
+        raise NotFoundError("Профиль ребёнка не найден", code="child_not_found")
+    return html
+
+
 # ── Преподаватель ────────────────────────────────────────────────────────────
 async def group_analytics(db: AsyncSession, user: User, group_id: int) -> GroupAnalytics:
     group, members = await repo.group_with_members(db, group_id)

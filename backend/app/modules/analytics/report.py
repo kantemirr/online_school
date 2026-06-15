@@ -40,16 +40,23 @@ th,td{{border:1px solid #ccc;padding:8px;text-align:left}}th{{background:#f0f1fb
 </body></html>"""
 
 
-async def generate_report_file(db: AsyncSession, child_id: int) -> str:
+async def build_report_html(db: AsyncSession, child_id: int) -> str | None:
+    """Строит HTML-отчёт об успеваемости (для скачивания и для фоновой задачи)."""
     child = await db.get(StudentProfile, child_id)
     if child is None:
-        return ""
-    html = _render(
+        return None
+    return _render(
         child.nickname,
         await repo.course_progress(db, child_id),
         await repo.attendance_summary(db, child_id),
         await repo.achievements_detail(db, child_id),
     )
+
+
+async def generate_report_file(db: AsyncSession, child_id: int) -> str:
+    html = await build_report_html(db, child_id)
+    if html is None:
+        return ""
     folder = os.path.join(settings.UPLOADS_DIR, "reports")
     os.makedirs(folder, exist_ok=True)
     path = os.path.join(folder, f"report_{child_id}_{datetime.now():%Y%m%d_%H%M%S}.html")

@@ -2,6 +2,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
+from fastapi.responses import HTMLResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_db
@@ -44,6 +45,11 @@ async def child_report(child_id: int, parent: ParentDep, db: DbDep):
 @router.post("/children/{child_id}/report/export", response_model=ReportExportOut)
 async def export_report(child_id: int, parent: ParentDep, db: DbDep):
     return await service.export_report(db, parent, child_id)
+
+
+@router.get("/children/{child_id}/report/download", response_class=HTMLResponse)
+async def download_report(child_id: int, parent: ParentDep, db: DbDep):
+    return HTMLResponse(await service.render_report(db, parent, child_id))
 
 
 @router.get("/groups/{group_id}", response_model=GroupAnalytics)
