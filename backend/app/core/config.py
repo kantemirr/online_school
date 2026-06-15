@@ -60,7 +60,8 @@ class Settings(BaseSettings):
     FRONTEND_BASE_URL: str = "http://localhost:8080"
 
     # ── Bootstrap-администратор ──
-    BOOTSTRAP_ADMIN_EMAIL: str = "admin@codekids.local"
+    # Домен не .local/.example/.test — их отвергает email-валидатор (EmailStr).
+    BOOTSTRAP_ADMIN_EMAIL: str = "admin@codekids.ru"
     BOOTSTRAP_ADMIN_PASSWORD: str = "admin12345"
 
     # ── CORS ──
