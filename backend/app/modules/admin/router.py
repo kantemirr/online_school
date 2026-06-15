@@ -73,6 +73,11 @@ async def list_payments(
     return await service.list_payments(db, status=status_filter, page=page, size=size)
 
 
+@router.post("/payments/{payment_id}/refund", status_code=status.HTTP_204_NO_CONTENT)
+async def refund_payment(payment_id: int, admin: CurrentUser, db: DbDep):
+    await service.refund_payment(db, admin, payment_id)
+
+
 @router.get("/groups", response_model=AdminGroupListOut)
 async def list_groups(
     db: DbDep,

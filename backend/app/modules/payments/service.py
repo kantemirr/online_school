@@ -174,6 +174,31 @@ async def cancel_subscription(db: AsyncSession, parent: User, subscription_id: i
     return _subscription_out(subscription)
 
 
+# ── Возврат платежа (действие администратора) ────────────────────────────────
+async def refund(db: AsyncSession, payment_id: int) -> PaymentOut:
+    """Возврат оплаченного платежа: статус REFUNDED + снятие доступа (абонемент отменяется)."""
+    payment = await repo.get_payment(db, payment_id)
+    if payment is None:
+        raise NotFoundError("Платёж не найден", code="payment_not_found")
+    if payment.status != PaymentStatus.PAID:
+        raise ConflictError("Возврат доступен только для оплаченного платежа", code="not_paid")
+
+    payment.status = PaymentStatus.REFUNDED
+    subscription = await repo.get_subscription(db, payment.subscription_id)
+    if subscription is not None:
+        subscription.status = SubscriptionStatus.CANCELLED
+    await db.commit()
+    await db.refresh(payment)
+
+    if subscription is not None:
+        from app.modules.notifications import service as notifications
+        await notifications.notify_payment(
+            db, subscription.parent_id, status="refunded",
+            amount=payment.amount, receipt_no=payment.receipt_no,
+        )
+    return _payment_out(payment)
+
+
 # ── Контроль доступа (стык с learning) ───────────────────────────────────────
 async def has_access(db: AsyncSession, student_id: int, course: Course) -> bool:
     if course.price == 0:

@@ -214,6 +214,17 @@ async def list_payments(
     )
 
 
+async def refund_payment(db: AsyncSession, admin: User, payment_id: int) -> None:
+    """Возврат платежа администратором + запись в журнал аудита."""
+    from app.modules.payments import service as payments
+
+    payment = await payments.refund(db, payment_id)
+    await record_audit(
+        db, admin, "payment_refund",
+        target=f"payment:{payment_id}", meta={"amount": str(payment.amount)},
+    )
+
+
 async def list_groups(
     db: AsyncSession, *, page: int, size: int
 ) -> AdminGroupListOut:
