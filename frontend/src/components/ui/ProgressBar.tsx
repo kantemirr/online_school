@@ -17,6 +17,7 @@ export function ProgressBar({ value, className }: ProgressBarProps) {
       aria-valuenow={pct}
       aria-valuemin={0}
       aria-valuemax={100}
+      aria-label={`Прогресс ${pct}%`}
     >
       <motion.div
         className="h-full rounded-full bg-brand"

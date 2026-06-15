@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 
 import { cn } from '../../lib/cn'
 
@@ -61,8 +61,12 @@ function Eyes({ mood }: { mood: KodikMood }) {
 
 /** Маскот «Кодик» — дружелюбный робот, реагирующий настроением на события. */
 export function Kodik({ mood = 'idle', size = 120, className, ...rest }: KodikProps) {
-  const bob = mood === 'idle' || mood === 'thinking'
-  const wave = mood === 'wave' || mood === 'celebrate'
+  // Уважаем prefers-reduced-motion: гасим декоративные JS-анимации Framer
+  // (CSS-медиазапрос их не останавливает).
+  const reduce = useReducedMotion()
+  const bob = !reduce && (mood === 'idle' || mood === 'thinking')
+  const wave = !reduce && (mood === 'wave' || mood === 'celebrate')
+  const pulse = !reduce && mood === 'celebrate'
 
   return (
     <motion.svg
@@ -82,8 +86,8 @@ export function Kodik({ mood = 'idle', size = 120, className, ...rest }: KodikPr
         cy="8"
         r="6"
         fill="#FDB833"
-        animate={mood === 'celebrate' ? { scale: [1, 1.4, 1] } : { scale: 1 }}
-        transition={mood === 'celebrate' ? { duration: 0.6, repeat: Infinity } : { duration: 0.2 }}
+        animate={pulse ? { scale: [1, 1.4, 1] } : { scale: 1 }}
+        transition={pulse ? { duration: 0.6, repeat: Infinity } : { duration: 0.2 }}
         style={{ transformOrigin: '60px 8px' }}
       />
 
