@@ -87,15 +87,8 @@ export function Kodik({ mood = 'idle', size = 120, className, ...rest }: KodikPr
         style={{ transformOrigin: '60px 8px' }}
       />
 
-      <rect x="20" y="22" width="80" height="58" rx="20" fill="#6C5CE7" />
-      <rect x="28" y="30" width="64" height="42" rx="13" fill="#0FA8A4" />
-      <Eyes mood={mood} />
-      <path d={MOUTHS[mood]} fill="none" stroke="#082B3A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-
-      <rect x="30" y="82" width="60" height="46" rx="16" fill="#6C5CE7" />
-      <circle cx="60" cy="104" r="7" fill={CHEST[mood]} />
-
-      <rect x="12" y="88" width="13" height="28" rx="6.5" fill="#5544D6" />
+      {/* Светлый контур (stroke) делает силуэт читаемым даже на индиго-фоне (bg-brand). */}
+      <rect x="12" y="88" width="13" height="28" rx="6.5" fill="#5544D6" stroke="#FFFFFF" strokeWidth="2" />
       <motion.rect
         x="95"
         y="84"
@@ -103,13 +96,23 @@ export function Kodik({ mood = 'idle', size = 120, className, ...rest }: KodikPr
         height="28"
         rx="6.5"
         fill="#5544D6"
+        stroke="#FFFFFF"
+        strokeWidth="2"
         style={{ transformBox: 'fill-box', transformOrigin: 'top center' }}
         animate={wave ? { rotate: [0, -22, 6, -22, 0] } : { rotate: 12 }}
         transition={wave ? { duration: 1, repeat: Infinity, ease: 'easeInOut' } : { duration: 0.2 }}
       />
 
-      <rect x="42" y="128" width="14" height="14" rx="6" fill="#5544D6" />
-      <rect x="64" y="128" width="14" height="14" rx="6" fill="#5544D6" />
+      <rect x="42" y="128" width="14" height="14" rx="6" fill="#5544D6" stroke="#FFFFFF" strokeWidth="2" />
+      <rect x="64" y="128" width="14" height="14" rx="6" fill="#5544D6" stroke="#FFFFFF" strokeWidth="2" />
+
+      <rect x="30" y="82" width="60" height="46" rx="16" fill="#6C5CE7" stroke="#FFFFFF" strokeWidth="2" />
+      <circle cx="60" cy="104" r="7" fill={CHEST[mood]} />
+
+      <rect x="20" y="22" width="80" height="58" rx="20" fill="#6C5CE7" stroke="#FFFFFF" strokeWidth="2" />
+      <rect x="28" y="30" width="64" height="42" rx="13" fill="#0FA8A4" />
+      <Eyes mood={mood} />
+      <path d={MOUTHS[mood]} fill="none" stroke="#082B3A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
     </motion.svg>
   )
 }
