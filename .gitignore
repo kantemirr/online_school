@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Env / secrets
+.env
+*.local
+
+# Node
+node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Data / uploads
+data/
+*.sqlite3
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Claude Code / harness local files
+.claude/
+
+# Logs
+*.log

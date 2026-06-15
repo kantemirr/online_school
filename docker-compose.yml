@@ -1,0 +1,94 @@
+name: codekids
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-app}
+      POSTGRES_DB: ${POSTGRES_DB:-codekids}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-app} -d ${POSTGRES_DB:-codekids}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    ports:
+      # host-порт 5433, чтобы не конфликтовать с другими локальными postgres
+      - "5433:5432"
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    ports:
+      # host-порт 6380, чтобы не конфликтовать с другими локальными redis
+      - "6380:6379"
+
+  backend:
+    build: ./backend
+    env_file: .env
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - project_uploads:/data/uploads
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/api/v1/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    expose:
+      - "8000"
+
+  worker:
+    build: ./backend
+    command: ["arq", "app.worker.settings.WorkerSettings"]
+    env_file: .env
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - project_uploads:/data/uploads
+      # Этап 5b: воркер запускает sandbox-контейнеры через Docker (docker-out-of-docker)
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  # Образ песочницы собирается, но как сервис не поднимается:
+  # воркер запускает его per-submission командой `docker run` с жёсткой изоляцией.
+  sandbox:
+    build: ./sandbox
+    image: ${SANDBOX_IMAGE:-codekids-sandbox:latest}
+    profiles: ["build-only"]
+
+  frontend:
+    build: ./frontend
+    env_file: .env
+    expose:
+      - "5173"
+    depends_on:
+      - backend
+
+  nginx:
+    image: nginx:1.27-alpine
+    volumes:
+      - ./infra/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+      - frontend
+
+volumes:
+  pgdata:
+  project_uploads:
