@@ -1,0 +1,53 @@
+# Render Blueprint — бэкенд CodeKids (web + ARQ worker).
+# Postgres и Redis — управляемые на Vercel (Vercel Postgres/Neon + Vercel KV/Upstash),
+# подключаются через DATABASE_DSN / REDIS_DSN. Создать: Render → New → Blueprint.
+#
+# ОГРАНИЧЕНИЕ: Render не даёт доступ к Docker-сокету → песочница (исполнение кода)
+# в облаке деградирует (понятное «недоступно»); полноценная изоляция — локально.
+
+envVarGroups:
+  - name: codekids-shared
+    envVars:
+      - key: DATABASE_DSN        # postgres://… от Vercel Postgres (non-pooling)
+        sync: false
+      - key: REDIS_DSN           # rediss://… от Vercel KV (Upstash)
+        sync: false
+      - key: DB_SSL
+        value: "true"
+      - key: ANTHROPIC_API_KEY   # опц. (иначе эвристические подсказки)
+        sync: false
+
+services:
+  - type: web
+    name: codekids-backend
+    runtime: docker
+    dockerfilePath: backend/Dockerfile
+    dockerContext: backend
+    healthCheckPath: /api/v1/health
+    preDeployCommand: bash scripts/release.sh
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - fromGroup: codekids-shared
+      - key: ENVIRONMENT
+        value: production
+      - key: DEBUG
+        value: "false"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ORIGINS        # домен фронта на Vercel, напр. https://codekids.vercel.app
+        sync: false
+      - key: FRONTEND_BASE_URL
+        sync: false
+      - key: BOOTSTRAP_ADMIN_EMAIL
+        value: admin@codekids.ru
+      - key: BOOTSTRAP_ADMIN_PASSWORD
+        sync: false
+
+  - type: worker
+    name: codekids-worker
+    runtime: docker
+    dockerfilePath: backend/Dockerfile
+    dockerContext: backend
+    startCommand: arq app.worker.settings.WorkerSettings
+    envVars:
+      - fromGroup: codekids-shared
