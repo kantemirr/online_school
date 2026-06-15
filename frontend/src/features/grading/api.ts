@@ -57,6 +57,16 @@ export interface Hint {
   source: 'ai' | 'heuristic'
 }
 
+export interface QueueItem {
+  submission_id: number
+  assignment_id: number
+  student_id: number
+  nickname: string | null
+  assignment_title: string
+  file_url: string | null
+  created_at: string
+}
+
 export const gradingApi = baseApi.injectEndpoints({
   endpoints: (b) => ({
     assignment: b.query<AssignmentForSolve, number>({
@@ -90,6 +100,17 @@ export const gradingApi = baseApi.injectEndpoints({
     hint: b.query<Hint, number>({
       query: (id) => `/submissions/${id}/hint`,
     }),
+    gradingQueue: b.query<QueueItem[], void>({
+      query: () => '/grading/queue',
+      providesTags: ['GradingQueue'],
+    }),
+    reviewSubmission: b.mutation<
+      Submission,
+      { id: number; score: number; feedback?: string; status: 'reviewed' | 'needs_revision' }
+    >({
+      query: ({ id, ...body }) => ({ url: `/grading/submissions/${id}/review`, method: 'POST', body }),
+      invalidatesTags: ['GradingQueue'],
+    }),
   }),
 })
 
@@ -100,4 +121,6 @@ export const {
   useSubmitProjectMutation,
   useSubmissionQuery,
   useLazyHintQuery,
+  useGradingQueueQuery,
+  useReviewSubmissionMutation,
 } = gradingApi

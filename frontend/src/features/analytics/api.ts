@@ -64,6 +64,24 @@ export interface ChildReport {
   achievements: AchievementBrief[]
 }
 
+export interface GroupStudentRow {
+  student_id: number
+  nickname: string
+  progress_pct: number
+  attendance_rate: number
+  last_active: string | null
+}
+
+export interface GroupAnalytics {
+  group_id: number
+  name: string
+  course_id: number
+  students: GroupStudentRow[]
+  avg_progress: number
+  avg_attendance: number
+  active_count: number
+}
+
 export const analyticsApi = baseApi.injectEndpoints({
   endpoints: (b) => ({
     studentDashboard: b.query<StudentDashboard, void>({
@@ -78,7 +96,16 @@ export const analyticsApi = baseApi.injectEndpoints({
       query: (childId) => `/analytics/children/${childId}`,
       providesTags: ['Enrollment'],
     }),
+    groupAnalytics: b.query<GroupAnalytics, number>({
+      query: (groupId) => `/analytics/groups/${groupId}`,
+      providesTags: ['Groups'],
+    }),
   }),
 })
 
-export const { useStudentDashboardQuery, useParentOverviewQuery, useChildReportQuery } = analyticsApi
+export const {
+  useStudentDashboardQuery,
+  useParentOverviewQuery,
+  useChildReportQuery,
+  useGroupAnalyticsQuery,
+} = analyticsApi
