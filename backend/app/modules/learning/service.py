@@ -184,6 +184,8 @@ async def mark_lesson_completed(
     db: AsyncSession, enrollment: Enrollment, lesson_id: int, score: int | None = None
 ) -> None:
     progress = await repo.get_lesson_progress(db, enrollment.id, lesson_id)
+    # Первое ли это завершение урока (для разовых начислений геймификации)
+    newly_completed = progress is None or progress.status != LessonProgressStatus.COMPLETED
     if progress is None:
         progress = LessonProgress(enrollment_id=enrollment.id, lesson_id=lesson_id)
         db.add(progress)
@@ -201,6 +203,13 @@ async def mark_lesson_completed(
     if ordered_ids and completed >= set(ordered_ids):
         enrollment.status = EnrollmentStatus.COMPLETED
     await db.commit()
+
+    # Геймификация: XP/streak/достижения/лидерборды (ленивый импорт — без циклов)
+    from app.modules.gamification import service as gamification
+    await gamification.award_for_lesson(
+        db, enrollment.student_id, enrollment.course_id, score,
+        newly_completed, float(enrollment.progress_pct),
+    )
 
 
 async def complete_lesson(
