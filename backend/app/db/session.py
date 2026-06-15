@@ -11,10 +11,14 @@ from app.core.config import get_settings
 
 _settings = get_settings()
 
+# В облаке (Neon/Vercel Postgres) нужен TLS — asyncpg включается через connect_args.
+_connect_args = {"ssl": True} if _settings.DB_SSL else {}
+
 engine = create_async_engine(
     _settings.DATABASE_URL,
     echo=False,
     pool_pre_ping=True,
+    connect_args=_connect_args,
 )
 
 SessionLocal = async_sessionmaker(

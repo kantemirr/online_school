@@ -11,6 +11,19 @@ from pydantic import computed_field, field_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
+def _normalize_pg_dsn(dsn: str) -> str:
+    """Приводит DSN провайдера (Vercel Postgres/Neon) к asyncpg-формату.
+
+    Убирает query-параметры libpq (sslmode/channel_binding) — asyncpg их не
+    понимает (TLS включается отдельно через DB_SSL), и нормализует схему.
+    """
+    base = dsn.split("?", 1)[0]
+    for prefix in ("postgresql+asyncpg://", "postgresql://", "postgres://"):
+        if base.startswith(prefix):
+            return "postgresql+asyncpg://" + base[len(prefix):]
+    return base
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -36,6 +49,12 @@ class Settings(BaseSettings):
     REDIS_HOST: str = "redis"
     REDIS_PORT: int = 6379
     REDIS_DB: int = 0
+
+    # ── Облако: полные строки подключения от провайдера (Vercel Postgres/KV) ──
+    # Заданы → используются вместо частей выше. REDIS_DSN может быть rediss:// (TLS).
+    DATABASE_DSN: str | None = None
+    REDIS_DSN: str | None = None
+    DB_SSL: bool = False  # TLS к БД (включить в облаке: Neon/Vercel Postgres)
 
     # ── JWT (используется на Этапе 2) ──
     JWT_SECRET: str = "dev-secret-change-me"
@@ -86,6 +105,8 @@ class Settings(BaseSettings):
     @computed_field  # type: ignore[prop-decorator]
     @property
     def DATABASE_URL(self) -> str:
+        if self.DATABASE_DSN:
+            return _normalize_pg_dsn(self.DATABASE_DSN)
         return (
             f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
             f"@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
@@ -94,6 +115,8 @@ class Settings(BaseSettings):
     @computed_field  # type: ignore[prop-decorator]
     @property
     def REDIS_URL(self) -> str:
+        if self.REDIS_DSN:
+            return self.REDIS_DSN
         return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
 
 
