@@ -124,6 +124,11 @@ export const adminApi = baseApi.injectEndpoints({
     // реестры
     adminPayments: b.query<Paginated<AdminPayment>, { status?: string; page?: number; size?: number }>({
       query: (params) => ({ url: '/admin/payments', params }),
+      providesTags: ['AdminPayments'],
+    }),
+    refundPayment: b.mutation<void, number>({
+      query: (id) => ({ url: `/admin/payments/${id}/refund`, method: 'POST' }),
+      invalidatesTags: ['AdminPayments'],
     }),
     adminGroups: b.query<Paginated<AdminGroup>, { page?: number; size?: number }>({
       query: (params) => ({ url: '/admin/groups', params }),
@@ -188,7 +193,7 @@ export const adminApi = baseApi.injectEndpoints({
     }),
     createAssignment: b.mutation<
       { id: number },
-      { lesson_id: number; type: string; title: string; max_score: number; questions: QuestionCreate[]; code_tests: CodeTestCreate[] }
+      { lesson_id: number; type: string; title: string; max_score: number; due_at?: string | null; questions: QuestionCreate[]; code_tests: CodeTestCreate[] }
     >({
       query: ({ lesson_id, ...body }) => ({ url: `/admin/catalog/lessons/${lesson_id}/assignments`, method: 'POST', body }),
       invalidatesTags: ['AdminContent', 'Catalog'],
@@ -207,6 +212,7 @@ export const {
   useResetPasswordMutation,
   useCreateStaffMutation,
   useAdminPaymentsQuery,
+  useRefundPaymentMutation,
   useAdminGroupsQuery,
   useAuditQuery,
   useReferenceQuery,

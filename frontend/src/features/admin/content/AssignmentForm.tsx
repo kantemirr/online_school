@@ -23,12 +23,13 @@ export function AssignmentForm({ open, onOpenChange, lessonId }: { open: boolean
   const [type, setType] = useState<'quiz' | 'code' | 'project'>('quiz')
   const [title, setTitle] = useState('')
   const [maxScore, setMaxScore] = useState('100')
+  const [dueAt, setDueAt] = useState('')
   const [questions, setQuestions] = useState<QState[]>([])
   const [tests, setTests] = useState<TState[]>([])
   const [create, { isLoading }] = useCreateAssignmentMutation()
 
   function reset() {
-    setType('quiz'); setTitle(''); setMaxScore('100'); setQuestions([]); setTests([])
+    setType('quiz'); setTitle(''); setMaxScore('100'); setDueAt(''); setQuestions([]); setTests([])
   }
 
   async function submit() {
@@ -54,6 +55,7 @@ export function AssignmentForm({ open, onOpenChange, lessonId }: { open: boolean
         type,
         title,
         max_score: Number(maxScore) || 100,
+        due_at: dueAt ? new Date(dueAt).toISOString() : null,
         questions: type === 'quiz' ? qpayload : [],
         code_tests: type === 'code' ? tpayload : [],
       }).unwrap()
@@ -82,6 +84,9 @@ export function AssignmentForm({ open, onOpenChange, lessonId }: { open: boolean
         </div>
         <Field label="Название">
           <Input value={title} onChange={(e) => setTitle(e.target.value)} />
+        </Field>
+        <Field label="Срок сдачи (необязательно)">
+          <Input type="datetime-local" value={dueAt} onChange={(e) => setDueAt(e.target.value)} />
         </Field>
 
         {type === 'quiz' && (

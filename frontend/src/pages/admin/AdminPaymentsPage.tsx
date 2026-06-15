@@ -1,10 +1,11 @@
 import { useState } from 'react'
 
-import { Badge, Button, Card, EmptyState, Skeleton } from '../../components/ui'
-import { useAdminPaymentsQuery } from '../../features/admin/api'
+import { Badge, Button, Card, EmptyState, Modal, Skeleton } from '../../components/ui'
+import { useAdminPaymentsQuery, useRefundPaymentMutation, type AdminPayment } from '../../features/admin/api'
 import { cn } from '../../lib/cn'
 import { formatDate, formatMoney } from '../../lib/format'
 import { PAY_STATUS_LABEL, PLAN_LABEL } from '../../lib/labels'
+import { notify } from '../../lib/toast'
 
 const STATUSES = ['paid', 'pending', 'failed', 'refunded']
 const PAY_TONE: Record<string, 'success' | 'sun' | 'danger' | 'muted'> = {
@@ -19,7 +20,20 @@ export function AdminPaymentsPage() {
   const [status, setStatus] = useState<string | undefined>()
   const [page, setPage] = useState(1)
   const { data, isFetching, isError, refetch } = useAdminPaymentsQuery({ status, page, size: SIZE })
+  const [refund, { isLoading: refunding }] = useRefundPaymentMutation()
+  const [toRefund, setToRefund] = useState<AdminPayment | null>(null)
   const totalPages = data ? Math.max(1, Math.ceil(data.total / SIZE)) : 1
+
+  async function doRefund() {
+    if (!toRefund) return
+    try {
+      await refund(toRefund.id).unwrap()
+      notify.success('Платёж возвращён')
+      setToRefund(null)
+    } catch {
+      notify.error('Не удалось выполнить возврат')
+    }
+  }
 
   return (
     <div className="space-y-5">
@@ -60,11 +74,29 @@ export function AdminPaymentsPage() {
                 </div>
                 <span className="font-extrabold text-ink">{formatMoney(p.amount)}</span>
                 <Badge tone={PAY_TONE[p.status] ?? 'muted'}>{PAY_STATUS_LABEL[p.status] ?? p.status}</Badge>
+                {p.status === 'paid' && (
+                  <Button variant="ghost" size="sm" onClick={() => setToRefund(p)}>
+                    Вернуть
+                  </Button>
+                )}
               </li>
             ))}
           </ul>
         </Card>
       )}
+
+      <Modal open={!!toRefund} onOpenChange={(o) => !o && setToRefund(null)} title="Вернуть платёж?">
+        <div className="space-y-4">
+          <p className="text-muted">
+            Платёж на <b>{toRefund && formatMoney(toRefund.amount)}</b> будет помечен как возвращённый,
+            связанный абонемент — отменён (доступ к платным курсам снимется). Действие попадёт в журнал аудита.
+          </p>
+          <div className="flex justify-end gap-2">
+            <Button variant="ghost" onClick={() => setToRefund(null)}>Отмена</Button>
+            <Button variant="danger" loading={refunding} onClick={doRefund}>Вернуть платёж</Button>
+          </div>
+        </div>
+      </Modal>
 
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-3">

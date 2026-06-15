@@ -17,6 +17,7 @@ export interface AssignmentForSolve {
   type: 'quiz' | 'code' | 'project'
   title: string
   max_score: number
+  due_at: string | null
   questions: QuestionForSolve[]
   examples: CodeExample[]
 }
