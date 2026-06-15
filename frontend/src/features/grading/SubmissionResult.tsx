@@ -1,5 +1,6 @@
 import { CheckCircle2, XCircle } from 'lucide-react'
 
+import { Kodik } from '../../components/mascot/Kodik'
 import { Badge, Button, Card } from '../../components/ui'
 import { notify } from '../../lib/toast'
 import { useLazyHintQuery, type Submission, type SubmissionTest } from './api'
@@ -39,6 +40,19 @@ function TestList({ tests }: { tests: SubmissionTest[] }) {
 
 export function SubmissionResult({ submission }: { submission: Submission }) {
   const rj = submission.result_json
+
+  // Деградация песочницы: автопроверка недоступна — дружелюбная плашка, не «ошибка».
+  if (rj?.unavailable) {
+    return (
+      <Card className="flex items-center gap-3 border-sun-200 bg-sun-50">
+        <Kodik mood="thinking" size={48} aria-hidden />
+        <p className="text-sm font-bold text-sun-ink">
+          {submission.feedback ?? 'Автопроверка кода временно недоступна, попробуйте позже.'}
+        </p>
+      </Card>
+    )
+  }
+
   const verdict = submission.verdict ?? 'failed'
   const meta = VERDICT[verdict] ?? VERDICT.failed
   const [getHint, { data: hint, isFetching }] = useLazyHintQuery()

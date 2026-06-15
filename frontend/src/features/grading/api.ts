@@ -31,9 +31,10 @@ export interface SubmissionTest {
 }
 
 export interface SubmissionResultJson {
-  summary?: { passed: number; total: number; verdict?: string }
+  summary?: { passed: number; total: number; verdict?: string | null }
   tests?: SubmissionTest[]
   stderr?: string
+  unavailable?: boolean
   correct?: number
   total?: number
   wrong_question_ids?: number[]

@@ -24,6 +24,21 @@ def aggregate(results: list[dict], max_score: int) -> dict:
     Возвращает вердикт, баллы и безопасный result_json.
     """
     total = len(results)
+
+    # Деградация: песочница недоступна (Docker/воркер) — не выдаём ложный «failed»,
+    # урок не закрываем, показываем дружелюбное «попробуйте позже».
+    if total and all(r.get("infra_error") for r in results):
+        return {
+            "verdict": None,
+            "score": 0,
+            "result_json": {
+                "summary": {"passed": 0, "total": total, "verdict": None},
+                "tests": [],
+                "stderr": "",
+                "unavailable": True,
+            },
+            "feedback": "Автопроверка кода временно недоступна, попробуйте позже.",
+        }
     total_weight = sum(r["weight"] for r in results) or 1
     passed_weight = sum(r["weight"] for r in results if r["passed"])
     passed_count = sum(1 for r in results if r["passed"])

@@ -72,6 +72,17 @@ def test_aggregate_failed():
     assert agg["verdict"] == CodeVerdict.FAILED and agg["score"] == 0
 
 
+def test_aggregate_sandbox_unavailable_degrades():
+    # Все прогоны — infra_error (Docker/воркер недоступны) → деградация, не «failed»
+    bad = {"test_no": 1, "weight": 1, "passed": False, "hidden": False, "stdin": "5",
+           "expected": "25", "got": "", "stderr": "Песочница недоступна", "infra_error": True}
+    agg = aggregate([bad, {**bad, "test_no": 2}], max_score=100)
+    assert agg["verdict"] is None
+    assert agg["score"] == 0
+    assert agg["result_json"]["unavailable"] is True
+    assert "недоступна" in agg["feedback"].lower()
+
+
 def test_evaluate_one_trims_and_checks_exit():
     ok, got = evaluate_one("25", {"stdout": "25\n", "exit_code": 0, "timed_out": False})
     assert ok and got == "25"

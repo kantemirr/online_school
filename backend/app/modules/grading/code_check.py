@@ -40,6 +40,7 @@ async def run_code_check(submission_id: int) -> None:
                 "expected": test.expected_stdout, "got": got,
                 "stderr": sandbox_result.get("stderr", ""),
                 "timed_out": sandbox_result.get("timed_out", False),
+                "infra_error": sandbox_result.get("infra_error", False),
             })
 
         if not tests:
@@ -65,10 +66,11 @@ async def run_code_check(submission_id: int) -> None:
             if enrollment is not None:
                 await learning.mark_lesson_completed(db, enrollment, assignment.lesson_id, agg["score"])
 
-        # Уведомление ученику (+ email родителю)
+        # Уведомление ученику (+ email родителю). verdict=None — деградация песочницы.
         from app.modules.notifications import service as notifications
+        verdict_str = agg["verdict"].value if agg["verdict"] is not None else "unavailable"
         await notifications.notify_work_checked(
-            db, submission.student_id, submission.id, agg["verdict"].value
+            db, submission.student_id, submission.id, verdict_str
         )
 
         logger.info("code_check done: submission=%s verdict=%s", submission_id, agg["verdict"])
