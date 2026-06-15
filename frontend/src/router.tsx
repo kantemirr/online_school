@@ -6,7 +6,6 @@ import { AppShell } from './components/layout/AppShell'
 import { RequireAuth } from './features/auth/RequireAuth'
 import type { UserRole } from './lib/types'
 import { ComingSoonPage } from './pages/ComingSoonPage'
-import { HomePage } from './pages/HomePage'
 import { StyleguidePage } from './pages/StyleguidePage'
 import { ChildLoginPage } from './pages/auth/ChildLoginPage'
 import { LoginPage } from './pages/auth/LoginPage'
@@ -14,8 +13,19 @@ import { RegisterPage } from './pages/auth/RegisterPage'
 import { ResetConfirmPage } from './pages/auth/ResetConfirmPage'
 import { ResetRequestPage } from './pages/auth/ResetRequestPage'
 import { VerifyEmailPage } from './pages/auth/VerifyEmailPage'
+import { AchievementsPage } from './pages/student/AchievementsPage'
+import { AssignmentPage } from './pages/student/AssignmentPage'
+import { CatalogPage } from './pages/student/CatalogPage'
+import { CoursePage } from './pages/student/CoursePage'
+import { DashboardPage } from './pages/student/DashboardPage'
+import { LearnCoursePage } from './pages/student/LearnCoursePage'
+import { LeaderboardPage } from './pages/student/LeaderboardPage'
+import { LessonPage } from './pages/student/LessonPage'
+import { NotificationsPage } from './pages/student/NotificationsPage'
+import { SchedulePage } from './pages/student/SchedulePage'
 
 const guard = (roles: UserRole[], el: ReactNode) => <RequireAuth roles={roles}>{el}</RequireAuth>
+const student = (el: ReactNode) => guard(['student'], el)
 
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
@@ -32,10 +42,16 @@ export const router = createBrowserRouter([
       </RequireAuth>
     ),
     children: [
-      { path: '/', element: guard(['student'], <HomePage />) },
-      { path: '/catalog', element: guard(['student'], <ComingSoonPage title="Каталог курсов" />) },
-      { path: '/achievements', element: guard(['student'], <ComingSoonPage title="Награды" />) },
-      { path: '/schedule', element: guard(['student'], <ComingSoonPage title="Расписание" />) },
+      { path: '/', element: student(<DashboardPage />) },
+      { path: '/catalog', element: student(<CatalogPage />) },
+      { path: '/courses/:id', element: student(<CoursePage />) },
+      { path: '/learn/:courseId', element: student(<LearnCoursePage />) },
+      { path: '/learn/lessons/:lessonId', element: student(<LessonPage />) },
+      { path: '/assignments/:assignmentId', element: student(<AssignmentPage />) },
+      { path: '/achievements', element: student(<AchievementsPage />) },
+      { path: '/leaderboard', element: student(<LeaderboardPage />) },
+      { path: '/schedule', element: student(<SchedulePage />) },
+      { path: '/notifications', element: student(<NotificationsPage />) },
       { path: '/parent', element: guard(['parent'], <ComingSoonPage title="Кабинет родителя" />) },
       { path: '/parent/children', element: guard(['parent'], <ComingSoonPage title="Мои дети" />) },
       { path: '/parent/payments', element: guard(['parent'], <ComingSoonPage title="Оплата" />) },
