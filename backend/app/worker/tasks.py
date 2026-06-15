@@ -58,7 +58,19 @@ async def expire_subscriptions(ctx: dict) -> int:
         return await payments.expire_subscriptions(db)
 
 
+async def generate_report(ctx: dict, child_id: int) -> str:
+    """Формирует HTML-отчёт об успеваемости ребёнка и сохраняет в uploads."""
+    from app.db.session import SessionLocal
+    from app.modules.analytics.report import generate_report_file
+
+    async with SessionLocal() as db:
+        path = await generate_report_file(db, child_id)
+    logger.info("report generated: %s", path)
+    return path
+
+
 # Список задач, который видит ARQ WorkerSettings.
 FUNCTIONS = [
-    ping, send_email, code_check, evaluate_achievements, recalc_leaderboard, expire_subscriptions,
+    ping, send_email, code_check, evaluate_achievements, recalc_leaderboard,
+    expire_subscriptions, generate_report,
 ]
