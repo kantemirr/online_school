@@ -22,8 +22,19 @@ function Tile({ icon: Icon, tone, label, value }: { icon: LucideIcon; tone: stri
 }
 
 export function ParentDashboardPage() {
-  const { data, isLoading } = useParentOverviewQuery()
+  const { data, isLoading, isError, refetch } = useParentOverviewQuery()
   const name = useAppSelector((s) => s.auth.user?.display_name) ?? 'родитель'
+
+  if (isError) {
+    return (
+      <EmptyState
+        title="Не удалось загрузить"
+        description="Проверьте соединение и попробуйте ещё раз."
+        mood="sad"
+        action={<Button variant="secondary" onClick={() => refetch()}>Повторить</Button>}
+      />
+    )
+  }
 
   if (isLoading || !data) return <Skeleton className="h-60 w-full rounded-xl" />
 

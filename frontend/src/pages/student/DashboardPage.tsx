@@ -21,8 +21,19 @@ function StatTile({ icon: Icon, tone, label, value }: { icon: LucideIcon; tone: 
 }
 
 export function DashboardPage() {
-  const { data, isLoading } = useStudentDashboardQuery()
+  const { data, isLoading, isError, refetch } = useStudentDashboardQuery()
   const name = useAppSelector((s) => s.auth.user?.display_name) ?? 'друг'
+
+  if (isError) {
+    return (
+      <EmptyState
+        title="Не удалось загрузить"
+        description="Проверь соединение и попробуй ещё раз."
+        mood="sad"
+        action={<Button variant="secondary" onClick={() => refetch()}>Повторить</Button>}
+      />
+    )
+  }
 
   if (isLoading || !data) {
     return (

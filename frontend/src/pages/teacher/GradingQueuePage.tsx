@@ -8,10 +8,20 @@ import { useGradingQueueQuery, type QueueItem } from '../../features/grading/api
 import { formatDateTime } from '../../lib/format'
 
 export function GradingQueuePage() {
-  const { data, isLoading } = useGradingQueueQuery()
+  const { data, isLoading, isError, refetch } = useGradingQueueQuery()
   const [review, setReview] = useState<QueueItem | null>(null)
 
   if (isLoading) return <Skeleton className="h-60 w-full rounded-xl" />
+  if (isError) {
+    return (
+      <EmptyState
+        title="Не удалось загрузить"
+        description="Проверьте соединение и попробуйте ещё раз."
+        mood="sad"
+        action={<Button variant="secondary" onClick={() => refetch()}>Повторить</Button>}
+      />
+    )
+  }
   if (!data || data.length === 0) {
     return <EmptyState title="Все работы проверены!" description="Очередь проверки пуста." mood="happy" />
   }

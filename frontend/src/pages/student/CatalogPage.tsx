@@ -20,7 +20,7 @@ export function CatalogPage() {
   const q = useDebounced(rawQ)
 
   const { data: tracks } = useTracksQuery()
-  const { data, isFetching } = useCoursesQuery({
+  const { data, isFetching, isError, refetch } = useCoursesQuery({
     track,
     level,
     q: q || undefined,
@@ -70,7 +70,14 @@ export function CatalogPage() {
         ))}
       </div>
 
-      {isFetching && !data ? (
+      {isError ? (
+        <EmptyState
+          title="Не удалось загрузить каталог"
+          description="Проверь соединение и попробуй ещё раз."
+          mood="sad"
+          action={<Button variant="secondary" onClick={() => refetch()}>Повторить</Button>}
+        />
+      ) : isFetching && !data ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
             <Skeleton key={i} className="h-44 rounded-xl" />
