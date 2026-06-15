@@ -53,6 +53,16 @@ class Settings(BaseSettings):
     SANDBOX_PIDS_LIMIT: int = 64
     SANDBOX_TIMEOUT_SEC: int = 8
 
+    # ── Email (SMTP → MailHog в dev) ──
+    SMTP_HOST: str = "mailhog"
+    SMTP_PORT: int = 1025
+    EMAIL_FROM: str = "no-reply@codekids.local"
+    FRONTEND_BASE_URL: str = "http://localhost:8080"
+
+    # ── Bootstrap-администратор ──
+    BOOTSTRAP_ADMIN_EMAIL: str = "admin@codekids.local"
+    BOOTSTRAP_ADMIN_PASSWORD: str = "admin12345"
+
     # ── CORS ──
     # NoDecode отключает JSON-парсинг env-значения; строку "a,b,c" разбирает валидатор ниже.
     CORS_ORIGINS: Annotated[list[str], NoDecode] = [

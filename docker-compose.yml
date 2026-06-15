@@ -29,6 +29,14 @@ services:
       # host-порт 6380, чтобы не конфликтовать с другими локальными redis
       - "6380:6379"
 
+  # SMTP-заглушка с веб-инбоксом: письма верификации/сброса видны на :8025
+  mailhog:
+    image: mailhog/mailhog:latest
+    ports:
+      - "8025:8025"   # web UI
+    expose:
+      - "1025"        # SMTP (внутри сети)
+
   backend:
     build: ./backend
     env_file: .env

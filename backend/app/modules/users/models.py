@@ -24,7 +24,9 @@ from app.db.enums import AgeGroup, UserRole
 class User(IdMixin, TimestampMixin, Base):
     __tablename__ = "users"
 
-    email: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
+    # email необязателен: дети входят по login_username + PIN.
+    # Инвариант (на уровне приложения): parent/teacher/admin обязаны иметь email.
+    email: Mapped[str | None] = mapped_column(String(255), unique=True, index=True)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     role: Mapped[UserRole] = mapped_column(SaEnum(UserRole, native_enum=False, length=20), nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
