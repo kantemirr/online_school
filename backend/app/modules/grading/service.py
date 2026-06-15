@@ -7,10 +7,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
 from app.core.exceptions import ConflictError, NotFoundError, PermissionDeniedError
+from sqlalchemy import select
+
 from app.core.queue import enqueue
 from app.db.enums import AssignmentType, CodeVerdict, SubmissionStatus, UserRole
 from app.modules.auth.ratelimit import enforce_rate_limit
-from app.modules.catalog.models import Lesson, Module
+from app.modules.catalog.models import Assignment, Lesson, Module
 from app.modules.grading import quiz, repository as repo
 from app.modules.grading.hints import generate_hint
 from app.modules.grading.models import Submission
@@ -25,7 +27,7 @@ from app.modules.grading.schemas import (
 )
 from app.modules.learning import repository as learning_repo
 from app.modules.learning import service as learning
-from app.modules.users.models import User
+from app.modules.users.models import StudentProfile, User
 
 settings = get_settings()
 
@@ -180,12 +182,28 @@ async def request_hint(db: AsyncSession, redis: aioredis.Redis, student: User, s
 
 # ── Ручная проверка проектов (преподаватель) ─────────────────────────────────
 async def list_queue(db: AsyncSession) -> list[GradingQueueItem]:
+    subs = await repo.pending_review_queue(db)
+    if not subs:
+        return []
+    student_ids = list({s.student_id for s in subs})
+    assignment_ids = list({s.assignment_id for s in subs})
+    nick_rows = await db.execute(
+        select(StudentProfile.user_id, StudentProfile.nickname).where(
+            StudentProfile.user_id.in_(student_ids)
+        )
+    )
+    nicks = {uid: nick for uid, nick in nick_rows.all()}
+    title_rows = await db.execute(
+        select(Assignment.id, Assignment.title).where(Assignment.id.in_(assignment_ids))
+    )
+    titles = {aid: title for aid, title in title_rows.all()}
     return [
         GradingQueueItem(
             submission_id=s.id, assignment_id=s.assignment_id, student_id=s.student_id,
+            nickname=nicks.get(s.student_id), assignment_title=titles.get(s.assignment_id, ""),
             file_url=s.file_url, created_at=s.created_at,
         )
-        for s in await repo.pending_review_queue(db)
+        for s in subs
     ]
 
 

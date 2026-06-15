@@ -67,6 +67,8 @@ class GradingQueueItem(BaseModel):
     submission_id: int
     assignment_id: int
     student_id: int
+    nickname: str | None = None
+    assignment_title: str = ""
     file_url: str | None
     created_at: datetime
 
