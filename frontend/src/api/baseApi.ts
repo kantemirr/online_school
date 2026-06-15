@@ -76,6 +76,7 @@ export const baseApi = createApi({
     'AdminUsers',
     'AdminPayments',
     'AdminGroups',
+    'AdminContent',
   ],
   endpoints: (builder) => ({
     health: builder.query<Health, void>({
