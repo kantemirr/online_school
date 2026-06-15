@@ -31,6 +31,12 @@ import { GradingQueuePage } from './pages/teacher/GradingQueuePage'
 import { GroupAnalyticsPage } from './pages/teacher/GroupAnalyticsPage'
 import { GroupDetailPage } from './pages/teacher/GroupDetailPage'
 import { TeacherGroupsPage } from './pages/teacher/TeacherGroupsPage'
+import { AdminContentPage } from './pages/admin/AdminContentPage'
+import { AdminGroupsPage } from './pages/admin/AdminGroupsPage'
+import { AdminOverviewPage } from './pages/admin/AdminOverviewPage'
+import { AdminPaymentsPage } from './pages/admin/AdminPaymentsPage'
+import { AdminUsersPage } from './pages/admin/AdminUsersPage'
+import { CourseEditorPage } from './pages/admin/CourseEditorPage'
 
 const guard = (roles: UserRole[], el: ReactNode) => <RequireAuth roles={roles}>{el}</RequireAuth>
 const student = (el: ReactNode) => guard(['student'], el)
@@ -68,10 +74,12 @@ export const router = createBrowserRouter([
       { path: '/teacher/groups/:id', element: guard(['teacher'], <GroupDetailPage />) },
       { path: '/teacher/groups/:id/analytics', element: guard(['teacher'], <GroupAnalyticsPage />) },
       { path: '/teacher/queue', element: guard(['teacher'], <GradingQueuePage />) },
-      { path: '/admin', element: guard(['admin'], <ComingSoonPage title="Админ-панель" />) },
-      { path: '/admin/users', element: guard(['admin'], <ComingSoonPage title="Пользователи" />) },
-      { path: '/admin/content', element: guard(['admin'], <ComingSoonPage title="Контент" />) },
-      { path: '/admin/payments', element: guard(['admin'], <ComingSoonPage title="Платежи" />) },
+      { path: '/admin', element: guard(['admin'], <AdminOverviewPage />) },
+      { path: '/admin/users', element: guard(['admin'], <AdminUsersPage />) },
+      { path: '/admin/content', element: guard(['admin'], <AdminContentPage />) },
+      { path: '/admin/content/:courseId', element: guard(['admin'], <CourseEditorPage />) },
+      { path: '/admin/payments', element: guard(['admin'], <AdminPaymentsPage />) },
+      { path: '/admin/groups', element: guard(['admin'], <AdminGroupsPage />) },
       { path: '*', element: <ComingSoonPage title="Страница не найдена" mood="sad" /> },
     ],
   },

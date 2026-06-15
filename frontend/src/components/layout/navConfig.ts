@@ -41,6 +41,7 @@ const ADMIN: NavItem[] = [
   { to: '/admin/users', label: 'Пользователи', icon: Users },
   { to: '/admin/content', label: 'Контент', icon: BookOpen },
   { to: '/admin/payments', label: 'Платежи', icon: CreditCard },
+  { to: '/admin/groups', label: 'Группы', icon: Calendar },
 ]
 
 export function navItemsFor(role: UserRole): NavItem[] {
