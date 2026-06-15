@@ -44,18 +44,15 @@ def _completed_ids(rows: list[LessonProgress]) -> set[int]:
     return {r.lesson_id for r in rows if r.status == LessonProgressStatus.COMPLETED}
 
 
-def check_access(student_id: int, course: Course) -> bool:
-    """Точка контроля доступа по абонементу (Этап 9). Пока всегда разрешено."""
-    return True
-
-
 # ── Запись ───────────────────────────────────────────────────────────────────
 async def enroll(db: AsyncSession, student_id: int, course_id: int) -> EnrollmentOut:
     course = await db.get(Course, course_id)
     if course is None or not course.is_published:
         raise NotFoundError("Курс не найден или не опубликован", code="course_not_found")
-    if not check_access(student_id, course):
-        raise PermissionDeniedError("Нет активного доступа к курсу", code="no_access")
+    # Контроль доступа по абонементу (бесплатные курсы открыты всем) — Этап 9
+    from app.modules.payments import service as payments
+    if not await payments.has_access(db, student_id, course):
+        raise PermissionDeniedError("Нужен активный абонемент на этот курс", code="no_subscription")
 
     existing = await repo.get_enrollment(db, student_id, course_id)
     if existing is not None:

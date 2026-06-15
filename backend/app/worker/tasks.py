@@ -49,5 +49,16 @@ async def recalc_leaderboard(ctx: dict) -> None:
         await gamification.recalc_leaderboards(db)
 
 
+async def expire_subscriptions(ctx: dict) -> int:
+    """Помечает истёкшие активные абонементы как expired."""
+    from app.db.session import SessionLocal
+    from app.modules.payments import service as payments
+
+    async with SessionLocal() as db:
+        return await payments.expire_subscriptions(db)
+
+
 # Список задач, который видит ARQ WorkerSettings.
-FUNCTIONS = [ping, send_email, code_check, evaluate_achievements, recalc_leaderboard]
+FUNCTIONS = [
+    ping, send_email, code_check, evaluate_achievements, recalc_leaderboard, expire_subscriptions,
+]

@@ -16,6 +16,37 @@ def _out(n: Notification) -> NotificationOut:
 
 
 # ── Создание уведомлений ─────────────────────────────────────────────────────
+async def notify(
+    db: AsyncSession, user_id: int, type_: NotificationType, payload: dict,
+    *, email_subject: str | None = None, email_html: str | None = None,
+) -> None:
+    """In-app уведомление пользователю + (опц.) письмо ему самому, если есть email."""
+    from app.modules.users.models import User
+
+    db.add(Notification(user_id=user_id, type=type_, payload_json=payload))
+    await db.commit()
+
+    if email_subject:
+        user = await db.get(User, user_id)
+        if user and user.email:
+            await enqueue("send_email", to=user.email, subject=email_subject, html=email_html or "")
+
+
+async def notify_payment(
+    db: AsyncSession, parent_user_id: int, *, status: str, amount, receipt_no: str | None,
+) -> None:
+    await notify(
+        db, parent_user_id, NotificationType.PAYMENT_STATUS,
+        {"status": status, "amount": str(amount), "receipt_no": receipt_no},
+        email_subject="Статус оплаты в CodeKids",
+        email_html=(
+            f"<p>Статус платежа: <b>{status}</b>, сумма {amount} ₽."
+            + (f" Квитанция №{receipt_no}." if receipt_no else "")
+            + " Подробности — в личном кабинете.</p>"
+        ),
+    )
+
+
 async def notify_student(
     db: AsyncSession, student_id: int, type_: NotificationType, payload: dict,
     *, email_subject: str | None = None, email_html: str | None = None,
