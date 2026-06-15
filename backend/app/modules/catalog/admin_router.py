@@ -12,8 +12,10 @@ from app.modules.catalog.schemas import (
     AssignmentCreate,
     CourseAdminOut,
     CourseCreate,
+    CourseDetailOut,
     CourseUpdate,
     IdOut,
+    LessonAdminOut,
     LessonCreate,
     LessonUpdate,
     ModuleCreate,
@@ -31,6 +33,22 @@ DbDep = Annotated[AsyncSession, Depends(get_db)]
 
 def _course_admin(c) -> CourseAdminOut:
     return CourseAdminOut(**_summary(c).model_dump(), is_published=c.is_published)
+
+
+# ── Чтение для редактора (включая неопубликованное) ──────────────────────────
+@router.get("/courses", response_model=list[CourseAdminOut])
+async def list_admin_courses(db: DbDep):
+    return await service.admin_list_courses(db)
+
+
+@router.get("/courses/{course_id}", response_model=CourseDetailOut)
+async def admin_course_detail(course_id: int, db: DbDep):
+    return await service.admin_course_detail(db, course_id)
+
+
+@router.get("/lessons/{lesson_id}", response_model=LessonAdminOut)
+async def admin_lesson_detail(lesson_id: int, db: DbDep):
+    return await service.admin_lesson_detail(db, lesson_id)
 
 
 # ── Курсы ────────────────────────────────────────────────────────────────────

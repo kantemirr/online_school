@@ -142,3 +142,19 @@ class IdOut(BaseModel):
 
 class CourseAdminOut(CourseSummaryOut):
     is_published: bool
+
+
+class AssignmentBrief(BaseModel):
+    id: int
+    type: AssignmentType
+    title: str
+    max_score: int
+
+
+class LessonAdminOut(BaseModel):
+    id: int
+    title: str
+    order_index: int
+    theory_md: str | None
+    video_url: str | None
+    assignments: list[AssignmentBrief]

@@ -1,6 +1,7 @@
 """Логика каталога: витрина (с кэшем Redis) и админ-управление контентом."""
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.core.cache import cache_get_json, cache_set_json, invalidate_prefix
 from app.core.exceptions import NotFoundError
@@ -16,11 +17,14 @@ from app.modules.catalog.models import (
 )
 from app.modules.catalog.schemas import (
     TRACK_LABELS,
+    AssignmentBrief,
     AssignmentCreate,
+    CourseAdminOut,
     CourseCreate,
     CourseDetailOut,
     CourseListOut,
     CourseSummaryOut,
+    LessonAdminOut,
     LessonCreate,
     LessonNodeOut,
     ModuleCreate,
@@ -111,6 +115,37 @@ async def get_course_detail(db: AsyncSession, course_id: int) -> CourseDetailOut
     result = _detail(course)
     await cache_set_json(key, result.model_dump())
     return result
+
+
+# ── Админ-чтение (включая неопубликованное, для редактора) ───────────────────
+async def admin_list_courses(db: AsyncSession) -> list[CourseAdminOut]:
+    items, _ = await repo.list_courses(
+        db, track=None, age=None, level=None, q=None, page=1, size=200, only_published=False
+    )
+    return [CourseAdminOut(**_summary(c).model_dump(), is_published=c.is_published) for c in items]
+
+
+async def admin_course_detail(db: AsyncSession, course_id: int) -> CourseDetailOut:
+    course = await repo.get_course_tree(db, course_id, only_published=False)
+    if course is None:
+        raise NotFoundError("Курс не найден", code="course_not_found")
+    return _detail(course)
+
+
+async def admin_lesson_detail(db: AsyncSession, lesson_id: int) -> LessonAdminOut:
+    lesson = await db.scalar(
+        select(Lesson).where(Lesson.id == lesson_id).options(selectinload(Lesson.assignments))
+    )
+    if lesson is None:
+        raise NotFoundError("Урок не найден", code="lesson_not_found")
+    return LessonAdminOut(
+        id=lesson.id, title=lesson.title, order_index=lesson.order_index,
+        theory_md=lesson.theory_md, video_url=lesson.video_url,
+        assignments=[
+            AssignmentBrief(id=a.id, type=a.type, title=a.title, max_score=a.max_score)
+            for a in sorted(lesson.assignments, key=lambda x: x.id)
+        ],
+    )
 
 
 # ── Админ-управление ─────────────────────────────────────────────────────────
