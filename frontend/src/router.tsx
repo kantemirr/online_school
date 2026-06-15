@@ -36,6 +36,7 @@ import { GradingQueuePage } from './pages/teacher/GradingQueuePage'
 import { GroupAnalyticsPage } from './pages/teacher/GroupAnalyticsPage'
 import { GroupDetailPage } from './pages/teacher/GroupDetailPage'
 import { TeacherGroupsPage } from './pages/teacher/TeacherGroupsPage'
+import { AdminAuditPage } from './pages/admin/AdminAuditPage'
 import { AdminContentPage } from './pages/admin/AdminContentPage'
 import { AdminGroupsPage } from './pages/admin/AdminGroupsPage'
 import { AdminOverviewPage } from './pages/admin/AdminOverviewPage'
@@ -95,6 +96,7 @@ export const router = createBrowserRouter([
       { path: '/admin/content/:courseId', element: guard(['admin'], <CourseEditorPage />) },
       { path: '/admin/payments', element: guard(['admin'], <AdminPaymentsPage />) },
       { path: '/admin/groups', element: guard(['admin'], <AdminGroupsPage />) },
+      { path: '/admin/audit', element: guard(['admin'], <AdminAuditPage />) },
       { path: '*', element: <ComingSoonPage title="Страница не найдена" mood="sad" /> },
     ],
   },

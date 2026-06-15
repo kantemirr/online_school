@@ -33,6 +33,14 @@ export interface AdminGroup {
   sessions: number
 }
 
+export interface AuditEntry {
+  id: number
+  actor_email: string | null
+  action: string
+  target: string | null
+  created_at: string
+}
+
 export interface ReferenceItem {
   value: string
   label: string
@@ -120,6 +128,9 @@ export const adminApi = baseApi.injectEndpoints({
     adminGroups: b.query<Paginated<AdminGroup>, { page?: number; size?: number }>({
       query: (params) => ({ url: '/admin/groups', params }),
     }),
+    audit: b.query<Paginated<AuditEntry>, { page?: number; size?: number }>({
+      query: (params) => ({ url: '/admin/audit', params }),
+    }),
     reference: b.query<ReferenceOut, void>({ query: () => '/admin/reference' }),
 
     // контент: чтение
@@ -197,6 +208,7 @@ export const {
   useCreateStaffMutation,
   useAdminPaymentsQuery,
   useAdminGroupsQuery,
+  useAuditQuery,
   useReferenceQuery,
   useAdminCoursesQuery,
   useAdminCourseQuery,

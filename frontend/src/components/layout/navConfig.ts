@@ -5,6 +5,7 @@ import {
   ClipboardList,
   CreditCard,
   Home,
+  ScrollText,
   Trophy,
   Users,
   type LucideIcon,
@@ -42,6 +43,7 @@ const ADMIN: NavItem[] = [
   { to: '/admin/content', label: 'Контент', icon: BookOpen },
   { to: '/admin/payments', label: 'Платежи', icon: CreditCard },
   { to: '/admin/groups', label: 'Группы', icon: Calendar },
+  { to: '/admin/audit', label: 'Журнал', icon: ScrollText },
 ]
 
 export function navItemsFor(role: UserRole): NavItem[] {
