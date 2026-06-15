@@ -7,8 +7,8 @@ import { RequireAuth } from './features/auth/RequireAuth'
 import { ROLE_HOME } from './lib/roles'
 import type { UserRole } from './lib/types'
 import { useAppSelector } from './store/hooks'
-import { ComingSoonPage } from './pages/ComingSoonPage'
 import { LandingPage } from './pages/LandingPage'
+import { NotFoundPage } from './pages/NotFoundPage'
 import { OnboardingPage } from './pages/OnboardingPage'
 import { ProfilePage } from './pages/ProfilePage'
 import { StyleguidePage } from './pages/StyleguidePage'
@@ -97,7 +97,7 @@ export const router = createBrowserRouter([
       { path: '/admin/payments', element: guard(['admin'], <AdminPaymentsPage />) },
       { path: '/admin/groups', element: guard(['admin'], <AdminGroupsPage />) },
       { path: '/admin/audit', element: guard(['admin'], <AdminAuditPage />) },
-      { path: '*', element: <ComingSoonPage title="Страница не найдена" mood="sad" /> },
+      { path: '*', element: <NotFoundPage /> },
     ],
   },
 ])
