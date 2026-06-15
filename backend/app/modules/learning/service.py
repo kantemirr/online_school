@@ -170,7 +170,7 @@ async def get_lesson_content(
         theory_md=lesson_node.theory_md, video_url=lesson_node.video_url,
         status=progress.status,
         assignments=[
-            AssignmentSummaryOut(id=a.id, type=a.type, title=a.title, max_score=a.max_score)
+            AssignmentSummaryOut(id=a.id, type=a.type, title=a.title, max_score=a.max_score, due_at=a.due_at)
             for a in lesson_node.assignments
         ],
     )

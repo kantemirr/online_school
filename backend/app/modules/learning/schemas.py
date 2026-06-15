@@ -19,6 +19,7 @@ class AssignmentSummaryOut(BaseModel):
     type: AssignmentType
     title: str
     max_score: int
+    due_at: datetime | None = None
 
 
 class LessonStateOut(BaseModel):

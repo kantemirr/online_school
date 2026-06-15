@@ -64,7 +64,8 @@ async def get_assignment_for_solve(db: AsyncSession, student: User, assignment_i
     ]
     return AssignmentForSolveOut(
         id=assignment.id, type=assignment.type, title=assignment.title,
-        max_score=assignment.max_score, questions=questions, examples=examples,
+        max_score=assignment.max_score, due_at=assignment.due_at,
+        questions=questions, examples=examples,
     )
 
 

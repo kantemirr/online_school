@@ -1,4 +1,5 @@
 """Pydantic-схемы каталога: чтение (витрина) и админ-управление контентом."""
+from datetime import datetime
 from decimal import Decimal
 
 from pydantic import BaseModel, Field
@@ -126,6 +127,7 @@ class AssignmentCreate(BaseModel):
     type: AssignmentType
     title: str = Field(min_length=1, max_length=255)
     max_score: int = Field(default=100, ge=1)
+    due_at: datetime | None = None
     questions: list[QuestionCreate] = Field(default_factory=list)
     code_tests: list[CodeTestCreate] = Field(default_factory=list)
 
@@ -133,6 +135,7 @@ class AssignmentCreate(BaseModel):
 class AssignmentUpdate(BaseModel):
     title: str | None = Field(default=None, min_length=1, max_length=255)
     max_score: int | None = Field(default=None, ge=1)
+    due_at: datetime | None = None
 
 
 # ── Ответы админ-операций ────────────────────────────────────────────────────
@@ -149,6 +152,7 @@ class AssignmentBrief(BaseModel):
     type: AssignmentType
     title: str
     max_score: int
+    due_at: datetime | None = None
 
 
 class LessonAdminOut(BaseModel):

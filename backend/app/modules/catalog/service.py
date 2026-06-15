@@ -142,7 +142,7 @@ async def admin_lesson_detail(db: AsyncSession, lesson_id: int) -> LessonAdminOu
         id=lesson.id, title=lesson.title, order_index=lesson.order_index,
         theory_md=lesson.theory_md, video_url=lesson.video_url,
         assignments=[
-            AssignmentBrief(id=a.id, type=a.type, title=a.title, max_score=a.max_score)
+            AssignmentBrief(id=a.id, type=a.type, title=a.title, max_score=a.max_score, due_at=a.due_at)
             for a in sorted(lesson.assignments, key=lambda x: x.id)
         ],
     )
@@ -260,7 +260,8 @@ async def delete_lesson(db: AsyncSession, lesson_id: int) -> None:
 async def create_assignment(db: AsyncSession, lesson_id: int, data: AssignmentCreate) -> Assignment:
     await _get_or_404(db, Lesson, lesson_id, "Урок")
     assignment = Assignment(
-        lesson_id=lesson_id, type=data.type, title=data.title, max_score=data.max_score
+        lesson_id=lesson_id, type=data.type, title=data.title,
+        max_score=data.max_score, due_at=data.due_at,
     )
     for qd in data.questions:
         assignment.questions.append(Question(**qd.model_dump()))

@@ -1,9 +1,11 @@
 """Модели каталога: иерархия Курс → Модуль → Урок → Задание → Вопросы/Тесты."""
+from datetime import datetime
 from decimal import Decimal
 
 from sqlalchemy import (
     BigInteger,
     Boolean,
+    DateTime,
     Enum as SaEnum,
     ForeignKey,
     Integer,
@@ -87,6 +89,8 @@ class Assignment(IdMixin, Base):
     )
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     max_score: Mapped[int] = mapped_column(Integer, default=100, nullable=False)
+    # Необязательный срок сдачи (информативный + напоминание; жёсткой блокировки нет)
+    due_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     lesson: Mapped["Lesson"] = relationship(back_populates="assignments")
     questions: Mapped[list["Question"]] = relationship(

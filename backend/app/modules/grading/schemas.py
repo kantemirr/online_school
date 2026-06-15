@@ -25,6 +25,7 @@ class AssignmentForSolveOut(BaseModel):
     type: AssignmentType
     title: str
     max_score: int
+    due_at: datetime | None = None  # необязательный срок сдачи
     questions: list[QuestionForSolveOut] = Field(default_factory=list)
     examples: list[CodeExampleOut] = Field(default_factory=list)  # видимые тесты как примеры
 
