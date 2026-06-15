@@ -1,23 +1,30 @@
 import { useState } from 'react'
 
-import { Button, Card, Skeleton } from '../../components/ui'
+import { Button, Card, EmptyState, Skeleton } from '../../components/ui'
 import { useAdminGroupsQuery } from '../../features/admin/api'
 
 const SIZE = 20
 
 export function AdminGroupsPage() {
   const [page, setPage] = useState(1)
-  const { data, isFetching } = useAdminGroupsQuery({ page, size: SIZE })
+  const { data, isFetching, isError, refetch } = useAdminGroupsQuery({ page, size: SIZE })
   const totalPages = data ? Math.max(1, Math.ceil(data.total / SIZE)) : 1
 
   return (
     <div className="space-y-5">
       <h1 className="text-2xl font-extrabold text-ink">Реестр групп</h1>
 
-      {isFetching && !data ? (
+      {isError ? (
+        <EmptyState
+          title="Не удалось загрузить"
+          description="Проверьте соединение и попробуйте ещё раз."
+          mood="sad"
+          action={<Button variant="secondary" onClick={() => refetch()}>Повторить</Button>}
+        />
+      ) : isFetching && !data ? (
         <Skeleton className="h-60 w-full rounded-xl" />
       ) : !data || data.items.length === 0 ? (
-        <Card className="text-muted">Групп нет.</Card>
+        <EmptyState title="Групп пока нет" description="Группы появятся, когда преподаватели их создадут." mood="idle" />
       ) : (
         <Card className="p-0">
           <ul className="divide-y divide-line">

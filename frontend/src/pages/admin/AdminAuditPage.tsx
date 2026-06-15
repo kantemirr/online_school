@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-import { Badge, Button, Card, Skeleton } from '../../components/ui'
+import { Badge, Button, Card, EmptyState, Skeleton } from '../../components/ui'
 import { useAuditQuery } from '../../features/admin/api'
 import { formatDateTime } from '../../lib/format'
 
@@ -13,7 +13,7 @@ const SIZE = 50
 
 export function AdminAuditPage() {
   const [page, setPage] = useState(1)
-  const { data, isFetching } = useAuditQuery({ page, size: SIZE })
+  const { data, isFetching, isError, refetch } = useAuditQuery({ page, size: SIZE })
   const totalPages = data ? Math.max(1, Math.ceil(data.total / SIZE)) : 1
 
   return (
@@ -21,10 +21,17 @@ export function AdminAuditPage() {
       <h1 className="text-2xl font-extrabold text-ink">Журнал аудита</h1>
       <p className="text-sm text-muted">Ключевые действия администраторов (надёжность и безопасность).</p>
 
-      {isFetching && !data ? (
+      {isError ? (
+        <EmptyState
+          title="Не удалось загрузить"
+          description="Проверьте соединение и попробуйте ещё раз."
+          mood="sad"
+          action={<Button variant="secondary" onClick={() => refetch()}>Повторить</Button>}
+        />
+      ) : isFetching && !data ? (
         <Skeleton className="h-72 w-full rounded-xl" />
       ) : !data || data.items.length === 0 ? (
-        <Card className="text-muted">Записей нет.</Card>
+        <EmptyState title="Журнал пуст" description="Действия администраторов появятся здесь." mood="idle" />
       ) : (
         <Card className="p-0">
           <ul className="divide-y divide-line">

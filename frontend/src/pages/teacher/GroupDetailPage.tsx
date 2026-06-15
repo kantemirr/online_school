@@ -92,7 +92,7 @@ export function GroupDetailPage() {
           </Button>
         </div>
         {data.sessions.length === 0 ? (
-          <Card className="text-muted">Занятий пока нет.</Card>
+          <EmptyState title="Занятий пока нет" description="Добавьте первое занятие со ссылкой на видеоконференцию." mood="idle" />
         ) : (
           <div className="space-y-2">
             {data.sessions.map((s) => (

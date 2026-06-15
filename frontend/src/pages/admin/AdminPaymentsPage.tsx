@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-import { Badge, Button, Card, Skeleton } from '../../components/ui'
+import { Badge, Button, Card, EmptyState, Skeleton } from '../../components/ui'
 import { useAdminPaymentsQuery } from '../../features/admin/api'
 import { cn } from '../../lib/cn'
 import { formatDate, formatMoney } from '../../lib/format'
@@ -18,7 +18,7 @@ const SIZE = 20
 export function AdminPaymentsPage() {
   const [status, setStatus] = useState<string | undefined>()
   const [page, setPage] = useState(1)
-  const { data, isFetching } = useAdminPaymentsQuery({ status, page, size: SIZE })
+  const { data, isFetching, isError, refetch } = useAdminPaymentsQuery({ status, page, size: SIZE })
   const totalPages = data ? Math.max(1, Math.ceil(data.total / SIZE)) : 1
 
   return (
@@ -34,10 +34,17 @@ export function AdminPaymentsPage() {
         ))}
       </div>
 
-      {isFetching && !data ? (
+      {isError ? (
+        <EmptyState
+          title="Не удалось загрузить"
+          description="Проверьте соединение и попробуйте ещё раз."
+          mood="sad"
+          action={<Button variant="secondary" onClick={() => refetch()}>Повторить</Button>}
+        />
+      ) : isFetching && !data ? (
         <Skeleton className="h-60 w-full rounded-xl" />
       ) : !data || data.items.length === 0 ? (
-        <Card className="text-muted">Платежей нет.</Card>
+        <EmptyState title="Платежей пока нет" description="Здесь появятся все платежи платформы." mood="idle" />
       ) : (
         <Card className="p-0">
           <ul className="divide-y divide-line">
