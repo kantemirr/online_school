@@ -1,5 +1,5 @@
 """Запросы групп, расписания и посещаемости."""
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.scheduling.models import (
@@ -69,6 +69,16 @@ async def get_attendance(db: AsyncSession, session_id: int, student_id: int) -> 
             Attendance.session_id == session_id, Attendance.student_id == student_id
         )
     )
+
+
+async def search_students(db: AsyncSession, q: str | None, limit: int = 20) -> list[StudentProfile]:
+    stmt = select(StudentProfile).order_by(StudentProfile.nickname).limit(limit)
+    if q:
+        like = f"%{q}%"
+        stmt = stmt.where(
+            or_(StudentProfile.nickname.ilike(like), StudentProfile.login_username.ilike(like))
+        )
+    return list(await db.scalars(stmt))
 
 
 async def nicknames(db: AsyncSession, student_ids: list[int]) -> dict[int, str]:

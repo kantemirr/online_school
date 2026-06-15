@@ -21,6 +21,7 @@ from app.modules.scheduling.schemas import (
     StudentAttendanceItem,
     StudentGroupOut,
     StudentScheduleItem,
+    StudentSearchOut,
 )
 from app.modules.users.models import User
 
@@ -39,6 +40,11 @@ async def create_group(data: GroupCreate, teacher: TeacherDep, db: DbDep):
 @router.get("/groups", response_model=list[GroupOut])
 async def my_groups(teacher: TeacherDep, db: DbDep):
     return await service.list_my_groups(db, teacher)
+
+
+@router.get("/students", response_model=list[StudentSearchOut])
+async def search_students(teacher: TeacherDep, db: DbDep, q: str | None = None):
+    return await service.search_students(db, q)
 
 
 @router.get("/groups/{group_id}", response_model=GroupDetailOut)

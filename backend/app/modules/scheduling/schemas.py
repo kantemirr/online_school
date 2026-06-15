@@ -45,6 +45,12 @@ class AddMemberIn(BaseModel):
     student_id: int
 
 
+class StudentSearchOut(BaseModel):
+    student_id: int
+    nickname: str
+    login_username: str | None
+
+
 # ── Расписание ───────────────────────────────────────────────────────────────
 class SessionCreate(BaseModel):
     starts_at: datetime

@@ -25,8 +25,16 @@ from app.modules.scheduling.schemas import (
     StudentAttendanceItem,
     StudentGroupOut,
     StudentScheduleItem,
+    StudentSearchOut,
 )
 from app.modules.users.models import StudentProfile, User
+
+
+async def search_students(db: AsyncSession, q: str | None) -> list[StudentSearchOut]:
+    return [
+        StudentSearchOut(student_id=s.user_id, nickname=s.nickname, login_username=s.login_username)
+        for s in await repo.search_students(db, q)
+    ]
 
 
 def _session_out(s: ScheduleSession) -> SessionOut:
