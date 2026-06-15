@@ -20,13 +20,65 @@ export interface StudentDashboard {
   courses: CourseProgressItem[]
 }
 
+export interface ChildBrief {
+  child_id: number
+  nickname: string
+  xp: number
+  streak: number
+  courses_enrolled: number
+  courses_completed: number
+  avg_progress: number
+}
+
+export interface FamilyExpenses {
+  total_spent: string | number
+  payments_count: number
+  active_subscriptions: number
+}
+
+export interface ParentOverview {
+  children: ChildBrief[]
+  expenses: FamilyExpenses
+}
+
+export interface AttendanceSummary {
+  present: number
+  absent: number
+  excused: number
+  rate: number
+}
+
+export interface AchievementBrief {
+  code: string
+  title: string
+  earned_at: string | null
+}
+
+export interface ChildReport {
+  child_id: number
+  nickname: string
+  xp: number
+  streak: number
+  courses: CourseProgressItem[]
+  attendance: AttendanceSummary
+  achievements: AchievementBrief[]
+}
+
 export const analyticsApi = baseApi.injectEndpoints({
   endpoints: (b) => ({
     studentDashboard: b.query<StudentDashboard, void>({
       query: () => '/analytics/me',
       providesTags: ['Enrollment'],
     }),
+    parentOverview: b.query<ParentOverview, void>({
+      query: () => '/analytics/children',
+      providesTags: ['Payments', 'Children'],
+    }),
+    childReport: b.query<ChildReport, number>({
+      query: (childId) => `/analytics/children/${childId}`,
+      providesTags: ['Enrollment'],
+    }),
   }),
 })
 
-export const { useStudentDashboardQuery } = analyticsApi
+export const { useStudentDashboardQuery, useParentOverviewQuery, useChildReportQuery } = analyticsApi
