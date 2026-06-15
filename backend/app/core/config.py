@@ -59,6 +59,11 @@ class Settings(BaseSettings):
     EMAIL_FROM: str = "no-reply@codekids.local"
     FRONTEND_BASE_URL: str = "http://localhost:8080"
 
+    # ── ИИ-подсказки (Anthropic) ──
+    ANTHROPIC_API_KEY: str = ""  # пусто → фолбэк на эвристику
+    AI_HINT_MODEL: str = "claude-haiku-4-5"
+    AI_HINT_RATE_LIMIT: int = 10  # подсказок в час на ученика
+
     # ── Bootstrap-администратор ──
     # Домен не .local/.example/.test — их отвергает email-валидатор (EmailStr).
     BOOTSTRAP_ADMIN_EMAIL: str = "admin@codekids.ru"
