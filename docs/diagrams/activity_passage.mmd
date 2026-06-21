@@ -1,0 +1,47 @@
+%% Рис. 11 — UML Activity «Прохождение курса учеником».
+%% Дорожки эмулируются подграфами (Ученик / Система / Воркер+Песочница).
+%% Рендер: https://mermaid.live
+flowchart TB
+    start([Начало]) --> pick[Выбрать курс в каталоге]
+    pick --> free{Курс бесплатный?}
+    free -- Нет --> sub{Есть активный<br/>абонемент родителя?}
+    sub -- Нет --> ask[Запросить оплату у родителя]:::sys
+    ask --> stop1([Доступ закрыт])
+    free -- Да --> enroll[Записаться на курс]:::sys
+    sub -- Да --> enroll
+    enroll --> open[Открыть разблокированный урок]:::sys
+    open --> theory[Изучить теорию и видео]
+    theory --> atype{Тип задания}
+
+    %% Квиз
+    atype -- Квиз --> quiz[Ответить на вопросы]
+    quiz --> qcheck[Автопроверка ответов]:::sys
+    qcheck --> qpass{Доля верных >= 60%?}
+    qpass -- Нет --> quiz
+    qpass -- Да --> done
+
+    %% Код в песочнице
+    atype -- Код --> code[Написать и отправить код]
+    code --> queue[Поставить в очередь]:::sys
+    queue --> box[Прогон тестов в Docker-песочнице]:::wrk
+    box --> verdict[Сформировать вердикт + фидбэк]:::wrk
+    verdict --> cpass{passed?}
+    cpass -- Нет --> hint[Показать ИИ-подсказку]:::sys
+    hint --> code
+    cpass -- Да --> done
+
+    %% Проект
+    atype -- Проект --> upload[Загрузить файл/ссылку]
+    upload --> review[Ревью преподавателя]:::sys
+    review --> rpass{Принято?}
+    rpass -- Нет --> upload
+    rpass -- Да --> done
+
+    done[Завершить урок]:::sys --> gam[Начислить XP / streak / достижения]:::sys
+    gam --> next{Есть следующий урок?}
+    next -- Да --> unlock[Разблокировать следующий]:::sys
+    unlock --> open
+    next -- Нет --> finish([Курс завершён])
+
+    classDef sys fill:#EDEBFD,stroke:#6C5CE7,color:#20243A;
+    classDef wrk fill:#E1F7F6,stroke:#13C0BC,color:#20243A;
