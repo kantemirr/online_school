@@ -134,7 +134,7 @@ async def seed_demo_course() -> bool:
         m1 = Module(course=course, title="Знакомство с Python", order_index=1)
         Lesson(
             module=m1, title="Что такое программирование", order_index=1,
-            video_url="https://www.youtube.com/embed/nKIu9yen5nc",
+            video_url="https://www.youtube.com/embed/8dJS-O32wOQ",
             theory_md=INTRO_THEORY_MD,
         )
         l2 = Lesson(
