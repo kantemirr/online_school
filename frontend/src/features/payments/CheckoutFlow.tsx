@@ -25,7 +25,6 @@ export function CheckoutFlow({ open, onOpenChange, onPaid }: CheckoutFlowProps) 
   const [step, setStep] = useState<'plan' | 'review' | 'done'>('plan')
   const [plan, setPlan] = useState<PlanCode>('monthly')
   const [courseId, setCourseId] = useState<number | undefined>()
-  const [failed, setFailed] = useState(false)
   const [paidId, setPaidId] = useState<number | null>(null)
 
   const { data: courses } = useCoursesQuery({ size: 100 })
@@ -38,7 +37,6 @@ export function CheckoutFlow({ open, onOpenChange, onPaid }: CheckoutFlowProps) 
       setStep('plan')
       setPlan('monthly')
       setCourseId(undefined)
-      setFailed(false)
       setPaidId(null)
     }, 200)
   }
@@ -47,18 +45,13 @@ export function CheckoutFlow({ open, onOpenChange, onPaid }: CheckoutFlowProps) 
   const amount =
     plan === 'course' ? (selectedCourse ? Number(selectedCourse.price) : null) : PLANS.find((p) => p.code === plan)!.price
 
-  async function doPay(outcome: 'paid' | 'failed') {
-    setFailed(false)
+  async function doPay() {
     try {
       const co = await checkout({ plan, course_id: plan === 'course' ? courseId : undefined }).unwrap()
-      const res = await pay({ payment_id: co.payment_id, outcome }).unwrap()
-      if (res.status === 'paid') {
-        celebrate()
-        setPaidId(co.payment_id)
-        setStep('done')
-      } else {
-        setFailed(true)
-      }
+      await pay({ payment_id: co.payment_id, outcome: 'paid' }).unwrap()
+      celebrate()
+      setPaidId(co.payment_id)
+      setStep('done')
     } catch {
       notify.error('Платёж не прошёл, попробуйте снова')
     }
@@ -110,13 +103,9 @@ export function CheckoutFlow({ open, onOpenChange, onPaid }: CheckoutFlowProps) 
         <div className="space-y-4 text-center">
           <p className="text-muted">К оплате</p>
           <p className="text-3xl font-extrabold text-ink">{amount != null ? formatMoney(amount) : '—'}</p>
-          {failed && <p className="font-bold text-danger-700">Платёж отклонён. Попробуйте ещё раз.</p>}
-          <Button fullWidth variant="reward" loading={paying} onClick={() => doPay('paid')}>
+          <Button fullWidth variant="reward" loading={paying} onClick={doPay}>
             Оплатить (демо)
           </Button>
-          <button className="text-sm font-bold text-hint hover:text-muted" onClick={() => doPay('failed')} disabled={paying}>
-            Сымитировать отказ
-          </button>
         </div>
       )}
 
