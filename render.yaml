@@ -1,9 +1,12 @@
-# Render Blueprint — бэкенд CodeKids (web + ARQ worker).
-# Postgres и Redis — управляемые на Vercel (Vercel Postgres/Neon + Vercel KV/Upstash),
+# Render Blueprint — бэкенд CodeKids на БЕСПЛАТНОМ тарифе (один web-сервис).
+# Воркер ARQ запускается ВНУТРИ web-сервиса (scripts/start.sh), т.к. отдельный
+# worker-сервис и preDeployCommand на Render платные.
+# Postgres и Redis — бесплатные на Vercel Marketplace (Neon + Upstash),
 # подключаются через DATABASE_DSN / REDIS_DSN. Создать: Render → New → Blueprint.
 #
-# ОГРАНИЧЕНИЕ: Render не даёт доступ к Docker-сокету → песочница (исполнение кода)
-# в облаке деградирует (понятное «недоступно»); полноценная изоляция — локально.
+# ОГРАНИЧЕНИЯ free-тарифа: сервис засыпает после ~15 мин простоя (первый запрос
+# «холодный»); Render не даёт доступ к Docker-сокету → песочница (исполнение кода)
+# деградирует (понятное «недоступно»); полноценная изоляция — локально.
 
 envVarGroups:
   - name: codekids-shared
@@ -21,11 +24,12 @@ services:
   - type: web
     name: codekids-backend
     runtime: docker
+    plan: free
     dockerfilePath: backend/Dockerfile
     dockerContext: backend
     healthCheckPath: /api/v1/health
-    preDeployCommand: bash scripts/release.sh
-    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    # Миграции+сиды и воркер запускаются внутри start.sh (без платного preDeploy/worker)
+    startCommand: bash scripts/start.sh
     envVars:
       - fromGroup: codekids-shared
       - key: ENVIRONMENT
@@ -42,12 +46,3 @@ services:
         value: admin@codekids.ru
       - key: BOOTSTRAP_ADMIN_PASSWORD
         sync: false
-
-  - type: worker
-    name: codekids-worker
-    runtime: docker
-    dockerfilePath: backend/Dockerfile
-    dockerContext: backend
-    startCommand: arq app.worker.settings.WorkerSettings
-    envVars:
-      - fromGroup: codekids-shared
