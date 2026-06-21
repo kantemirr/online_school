@@ -254,22 +254,26 @@ CATALOG: list[dict] = [
         "age_min": 11, "age_max": 14, "price": Decimal("0.00"),
         "modules": [
             {"title": "HTML", "lessons": [
-                {"title": "Теги и структура", "theory_md": "HTML строится из **тегов**: `<h1>`, `<p>`, `<a>`.",
+                {"title": "Теги и структура", "theory_md": THEORY["web_html"],
                  "assignments": [{"type": "quiz", "title": "HTML", "questions": [
                      _q("Какой тег для заголовка?", ["<h1>", "<p>", "<div>"], [0]),
                      _q("Какой тег для ссылки?", ["<a>", "<link>", "<href>"], [0]),
                      _q("Какой тег для абзаца текста?", ["<p>", "<text>", "<par>"], [0]),
+                     _q("В каком теге находится видимое содержимое страницы?", ["<body>", "<head>", "<title>"], [0]),
+                     _q("Какой тег создаёт пункт списка?", ["<li>", "<ul>", "<dot>"], [0]),
                      _q("Что из этого — HTML-теги?", ["<h1>", "<p>", "<color>"], [0, 1],
                         kind=QuestionKind.MULTIPLE),
                  ]}]},
             ]},
             {"title": "CSS", "lessons": [
-                {"title": "Стили и цвета", "theory_md": "CSS задаёт оформление: `color`, `font-size`, `background`.",
+                {"title": "Стили и цвета", "theory_md": THEORY["web_css"],
                  "assignments": [
                      {"type": "quiz", "title": "CSS", "questions": [
                          _q("Какое свойство задаёт цвет текста?", ["color", "background", "border"], [0]),
                          _q("Какое свойство задаёт размер шрифта?", ["font-size", "text-size", "size"], [0]),
                          _q("Какое свойство задаёт фон?", ["background", "color", "border"], [0]),
+                         _q("Как называется часть правила, выбирающая элементы?", ["Селектор", "Тег", "Атрибут"], [0]),
+                         _q("Как записать цвет кодом?", ["#6C5CE7", "color(6C5CE7)", "rgb=6C5CE7"], [0]),
                          _q("Что из этого — свойства CSS?", ["color", "font-size", "tag-name"], [0, 1],
                             kind=QuestionKind.MULTIPLE),
                      ]},
