@@ -289,15 +289,17 @@ CATALOG: list[dict] = [
         "age_min": 12, "age_max": 14, "price": Decimal("1490.00"),
         "modules": [
             {"title": "Основы JS", "lessons": [
-                {"title": "Переменные и функции", "theory_md": "`let x = 5;` — переменная. `function f(){}` — функция.",
+                {"title": "Переменные и функции", "theory_md": THEORY["js_vars"],
                  "assignments": [{"type": "quiz", "title": "JavaScript", "questions": [
                      _q("Как объявить переменную в JS?", ["let x = 5", "x := 5", "var: x"], [0]),
                      _q("Как объявить функцию?", ["function f(){}", "func f[]", "def f():"], [0]),
                      _q("Что делает `addEventListener('click', ...)`?", ["Реагирует на клик", "Создаёт переменную", "Удаляет элемент"], [0]),
+                     _q("Чем выводят значение в консоль браузера?", ["console.log()", "print()", "echo"], [0]),
+                     _q("Что объявляет постоянное значение?", ["const", "let", "var"], [0]),
                      _q("Какие ключевые слова объявляют переменную в JS?", ["let", "const", "make"], [0, 1],
                         kind=QuestionKind.MULTIPLE),
                  ]}]},
-                {"title": "События и DOM", "theory_md": "`addEventListener('click', ...)` реагирует на клик.",
+                {"title": "События и DOM", "theory_md": THEORY["js_dom"],
                  "assignments": [{"type": "project", "title": "Интерактивная кнопка"}]},
             ]},
         ],
