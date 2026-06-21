@@ -180,12 +180,14 @@ CATALOG: list[dict] = [
         "age_min": 11, "age_max": 14, "price": Decimal("1290.00"),
         "modules": [
             {"title": "Условия", "lessons": [
-                {"title": "if / else", "theory_md": "`if` выполняет код при условии, `else` — иначе.",
+                {"title": "if / else", "theory_md": THEORY["pyc_if"],
                  "assignments": [
                      {"type": "quiz", "title": "Условия", "questions": [
                          _q("Что выполнит `if x > 0:`?", ["Код, если x больше 0", "Код всегда", "Ничего"], [0]),
                          _q("Когда выполнится ветка `else`?", ["Если условие ложно", "Если условие истинно", "Всегда"], [0]),
                          _q("Какой оператор проверяет равенство?", ["==", "=", "=>"], [0]),
+                         _q("Для чего нужен `elif`?", ["Проверить ещё один вариант", "Закончить программу", "Повторить код"], [0]),
+                         _q("Что означает `n % 2 == 0`?", ["Число чётное", "Число нечётное", "Число отрицательное"], [0]),
                          _q("Какие значения логического типа есть в Python?", ["True", "False", "Maybe"], [0, 1],
                             kind=QuestionKind.MULTIPLE),
                      ]},
@@ -194,19 +196,19 @@ CATALOG: list[dict] = [
                  ]},
             ]},
             {"title": "Циклы", "lessons": [
-                {"title": "Цикл for", "theory_md": "`for i in range(n)` повторяет действие n раз.",
+                {"title": "Цикл for", "theory_md": THEORY["pyc_for"],
                  "assignments": [
                      {"type": "code", "title": "Сумма от 1 до N",
                       "tests": [_t("5\n", "15"), _t("10\n", "55", hidden=True)]},
                  ]},
-                {"title": "FizzBuzz", "theory_md": "Классическая задача: делимость на 3 и 5.",
+                {"title": "FizzBuzz", "theory_md": THEORY["pyc_fizz"],
                  "assignments": [
                      {"type": "code", "title": "FizzBuzz",
                       "tests": [_t("15\n", "FizzBuzz"), _t("3\n", "Fizz"), _t("5\n", "Buzz", hidden=True), _t("7\n", "7", hidden=True)]},
                  ]},
             ]},
             {"title": "Строки", "lessons": [
-                {"title": "Работа со строками", "theory_md": "Строки можно переворачивать срезом `s[::-1]`.",
+                {"title": "Работа со строками", "theory_md": THEORY["pyc_strings"],
                  "assignments": [
                      {"type": "code", "title": "Переверни строку",
                       "tests": [_t("привет\n", "тевирп"), _t("код\n", "док", hidden=True)]},
