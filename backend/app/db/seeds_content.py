@@ -56,27 +56,56 @@ async def seed_demo_course() -> bool:
         )
         l2 = Lesson(
             module=m1, title="Первая программа: print", order_index=2,
-            theory_md="Функция `print()` выводит текст на экран.",
+            theory_md=THEORY["py_print"],
         )
         quiz = Assignment(lesson=l2, type=AssignmentType.QUIZ, title="Проверь себя", max_score=100)
-        quiz.questions.append(Question(
-            text="Какая функция выводит текст на экран в Python?",
-            kind=QuestionKind.SINGLE,
-            options_json=["print()", "echo", "console.log()"],
-            correct_json=[0],
-        ))
+        # ВНИМАНИЕ: у всех вопросов верный вариант — индекс 0 (на это опираются
+        # интеграционные тесты test_control_example/test_grading_flow: отвечают [0]).
+        for q in (
+            Question(
+                text="Какая команда выводит текст на экран в Python?",
+                kind=QuestionKind.SINGLE,
+                options_json=["print()", "echo", "console.log()"],
+                correct_json=[0],
+            ),
+            Question(
+                text="Что писать вокруг текста (строки) в Python?",
+                kind=QuestionKind.SINGLE,
+                options_json=["Кавычки", "Квадратные скобки", "Знак №"],
+                correct_json=[0],
+            ),
+            Question(
+                text="Что выведет `print(\"2 + 2\")`?",
+                kind=QuestionKind.SINGLE,
+                options_json=["2 + 2", "4", "Ошибку"],
+                correct_json=[0],
+            ),
+            Question(
+                text="Сколько строк выведут три команды print подряд?",
+                kind=QuestionKind.SINGLE,
+                options_json=["Три", "Одну", "Ни одной"],
+                correct_json=[0],
+            ),
+            Question(
+                text="Что из этого — ошибки в программе?",
+                kind=QuestionKind.MULTIPLE,
+                options_json=["Незакрытая кавычка", "Слово принт вместо print", "Правильные скобки"],
+                correct_json=[0, 1],
+            ),
+        ):
+            quiz.questions.append(q)
 
         m2 = Module(course=course, title="Переменные и числа", order_index=2)
         l3 = Lesson(
             module=m2, title="Переменные", order_index=1,
-            theory_md="Переменная хранит значение: `x = 5`.",
+            theory_md=THEORY["py_vars"],
         )
         code = Assignment(lesson=l3, type=AssignmentType.CODE, title="Квадрат числа", max_score=100)
         code.code_tests.append(CodeTest(stdin="5\n", expected_stdout="25", is_hidden=False, weight=1))
         code.code_tests.append(CodeTest(stdin="9\n", expected_stdout="81", is_hidden=True, weight=1))
         Lesson(
             module=m2, title="Арифметика", order_index=2,
-            theory_md="Python умеет складывать, вычитать, умножать и делить числа.",
+            theory_md=THEORY["py_arith"],
         )
 
         session.add(course)

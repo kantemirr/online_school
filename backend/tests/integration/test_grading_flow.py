@@ -65,12 +65,12 @@ async def test_quiz_autocheck_completes_lesson(client, redis):
 
     assert quiz_assignment_id is not None
 
-    # Получить вопрос и отправить верный ответ (демо: верный вариант — индекс 0)
+    # Получить вопросы и отправить верный ответ (демо: верный вариант — индекс 0)
     assignment = (await client.get(f"/assignments/{quiz_assignment_id}", headers=auth)).json()
-    qid = assignment["questions"][0]["id"]
+    answers = {str(q["id"]): [0] for q in assignment["questions"]}
     r = await client.post(
         f"/assignments/{quiz_assignment_id}/submit/quiz",
-        headers=auth, json={"answers": {str(qid): [0]}},
+        headers=auth, json={"answers": answers},
     )
     assert r.status_code == 200
     body = r.json()

@@ -78,9 +78,10 @@ async def test_control_example(client, redis):
         await client.post(f"/learning/lessons/{lesson['id']}/complete", headers=cauth)
     assert quiz_aid is not None
     assignment = (await client.get(f"/assignments/{quiz_aid}", headers=cauth)).json()
-    qid = assignment["questions"][0]["id"]
+    # У всех вопросов демо-квиза верный вариант — индекс 0; отвечаем [0] на каждый.
+    answers = {str(q["id"]): [0] for q in assignment["questions"]}
     quiz_res = await client.post(
-        f"/assignments/{quiz_aid}/submit/quiz", headers=cauth, json={"answers": {str(qid): [0]}}
+        f"/assignments/{quiz_aid}/submit/quiz", headers=cauth, json={"answers": answers}
     )
     assert quiz_res.status_code == 200 and quiz_res.json()["result_json"]["passed"] is True
 
